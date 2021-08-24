@@ -1,0 +1,8 @@
+一个数据分析平台
+
+docker run -p 8080:8080 name:test -d docker-run
+
+
+package for module: run go get in Goland terminal
+
+start MySQL: set status of MySQL80 to start in services.msc
