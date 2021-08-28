@@ -18,15 +18,17 @@ var S3ToPredict = "D:/Project2_August_2021/s3/toPredict"
 func handlerPostImage(c *gin.Context) {
 	fmt.Println("HandlerPostImage invoked.")
 
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")  // IMPORTANT! allows CORS
+
 	// get the file from the form using the name of the key
 	file, err := c.FormFile(formFileName)
 	projectGo.CheckErr(err)
 
 	// check if the image exists in our database
 	imgName := file.Filename
-	exist, b, path := projectGo.QueryName(imgName)
+	exist, prediction, label, path := projectGo.QueryName(imgName)
 
-	var msg string
+	msg := ""
 
 	// if the image is never seen before
 	if exist == false {
@@ -40,12 +42,24 @@ func handlerPostImage(c *gin.Context) {
 		projectGo.CheckErr(err)
 
 		err = c.SaveUploadedFile(file, S3ToPredict+ imgName)
-	} else {
-		if b == true {
-			msg = "true\n" + path
-		}else {
-			msg = "false\n" + path
+	} else {  //else, check the prediction and the label
+		if prediction != nil {
+			if *prediction == true {
+				msg += "prediction true\n"
+			}else {
+				msg += "prediction false\n"
+			}
 		}
+
+		if label != nil {
+			if *label == true {
+				msg += "label true\n"
+			}else {
+				msg += "label false\n"
+			}
+		}
+
+		msg += *path
 	}
 
 	// make a response as a html file

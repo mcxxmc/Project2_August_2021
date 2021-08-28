@@ -1,3 +1,5 @@
+let urlPostImage = 'http://localhost:8080/imgSystem/'  // must specify http to enable CORS
+
 $(document).ready(function (e) {
     $('#form_img').on('submit',(function(e) {
         e.preventDefault();
@@ -5,7 +7,7 @@ $(document).ready(function (e) {
 
         $.ajax({
             type:'POST',
-            url: '/imgSystem/',
+            url: urlPostImage,
             data:formData,
             cache:false,
             contentType: false,

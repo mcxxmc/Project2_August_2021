@@ -8,15 +8,15 @@ DATASET_PATH = 'D:/KaggleVehicleDetectionImageSet/train'
 TEST_DIR = 'D:/KaggleVehicleDetectionImageSet/test'
 
 # The path where the images waiting to be predicted are cached
-S3_TO_PREDICT = 'D:/Project2_August_2021/s3/toPredict'
+S3_TO_PREDICT = 'D:/Project2_August_2021/s3/toPredict/'
 
 # The path where the predicted vehicle images go
-S3_PRED_VEHICLE = 'D:/Project2_August_2021/s3/predicted/vehicles'
+S3_PRED_VEHICLE = 'D:/Project2_August_2021/s3/predicted/vehicles/'
 
 # The path where the predicted non-vehicle images go
-S3_PRED_NON_VEHICLE = 'D:/Project2_August_2021/s3/predicted/non-vehicles'
+S3_PRED_NON_VEHICLE = 'D:/Project2_August_2021/s3/predicted/non-vehicles/'
 
-DATA_LIST = os.listdir('D:/KaggleVehicleDetectionImageSet/train')
+DATA_LIST = os.listdir(DATASET_PATH)
 
 IMAGE_SIZE = (64, 64)  # size of the picture
 

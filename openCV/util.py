@@ -1,6 +1,12 @@
 import cv2 as cv
 import numpy
 import matplotlib.pyplot as plt
+import numpy as np
+
+from const import (
+    S3_TO_PREDICT, chars
+)
+import random
 
 
 def capture(camera_seq: int = 0) -> numpy.ndarray:
@@ -39,3 +45,65 @@ def display(convertedFrame: numpy.ndarray) -> None:
     """
     plt.imshow(convertedFrame)
     plt.show()
+
+
+def generate_random_png_name() -> str:
+    """
+    Returns a randomly generated name for png file.
+    :return: str.
+        e.g., 'camera_abcdefgh123.png'
+    """
+    return 'camera_' + ''.join(random.sample(chars, 10)) + '.png'
+
+
+def reshape_image_smaller(img: numpy.ndarray, new_height: int = 64, new_width: int = 64,
+                          pooling: str = "mean") -> numpy.ndarray:
+    """
+    Reshape the image to make it smaller by pooling.
+    :param img: numpy.ndarray.
+    :param new_height: int. Default is 64.
+    :param new_width: int. Default is 64.
+    :param pooling: str.
+        Default is "mean". Other methods include "min", "max", "median", "mid".
+    :return: numpy.ndarray.
+    """
+    r = numpy.zeros((new_height, new_width, 3), dtype=int)
+
+    old_height, old_width, rgb = img.shape
+
+    step_size_height = old_height // new_height
+    step_size_width = old_width // new_width
+
+    f = False
+
+    if pooling == "min":
+        method = np.min
+    elif pooling == "max":
+        method = np.max
+    elif pooling == "median":
+        method = np.median
+    elif pooling == "mid":
+        method = None  # implements this special method in the nested for loop
+        f = True
+    else:
+        method = np.mean
+
+    for i in range(new_height):
+        for j in range(new_width):
+            if f:
+                r[i][j] = img[i * step_size_height, j * step_size_width, ::]
+            else:
+                r[i][j] = method(img[i * step_size_height: (i + 1) * step_size_height,
+                                  j * step_size_width: (j + 1) * step_size_width, ::])
+    return r
+
+
+def save_image(reshaped_img: numpy.ndarray, path: str = S3_TO_PREDICT) -> None:
+    """
+    Save the image to disk.
+    :param reshaped_img: numpy.ndarray.
+    :param path: str. With default.
+    :return: None.
+    """
+    imgPath = path + generate_random_png_name()
+    plt.imsave(imgPath, reshaped_img.astype(np.uint8))
