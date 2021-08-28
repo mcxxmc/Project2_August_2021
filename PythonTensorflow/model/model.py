@@ -1,30 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout
-from keras.preprocessing import image
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-
-
-LEARNING_RATE = 0.001  # start off with high rate first 0.001 and experiment with reducing it gradually
-
-# The path to training data; may vary depending on actual machines
-DATASET_PATH = 'D:/KaggleVehicleDetectionImageSet/train'
-# The path to testing data; may vary depending on actual machines
-TEST_DIR = 'D:/KaggleVehicleDetectionImageSet/test'
-
-# The path where the images waiting to be predicted are cached
-S3_TO_PREDICT = 'D:/Project2_August_2021/s3/toPredict'
-
-DATA_LIST = os.listdir('D:/KaggleVehicleDetectionImageSet/train')
-
-IMAGE_SIZE = (64, 64)  # size of the picture
-
-NUM_CLASSES = len(DATA_LIST)
-BATCH_SIZE = 40  # try reducing batch size or freeze more layers if your GPU runs out of memory
-NUM_EPOCHS = 10
-
-WEIGHTS_SAVE_PATH = "./weights/weight_3.h5"
+from static.const import LEARNING_RATE
 
 
 def create_model():
@@ -70,25 +46,3 @@ def compile_model(model):
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr_schedule),
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
-
-
-def load_image(img_path: str, show=False):
-    """
-    Load an image and return a numpy array.
-    :param img_path: str.
-    :param show: bool.
-        Whether to display the image. Default is False.
-    :return: a numpy array.
-    """
-    img = image.load_img(img_path, target_size=(64, 64))
-    img_tensor = image.img_to_array(img)  # (height, width, channels)
-    img_tensor = np.expand_dims(img_tensor, axis=0)  # (1, height, width, channels), add a dimension because the model
-                                                     # expects this shape: (batch_size, height, width, channels)
-    img_tensor /= 255.  # imshow expects values in the range [0, 1]
-
-    if show:
-        plt.imshow(img_tensor[0])
-        plt.axis('off')
-        plt.show()
-
-    return img_tensor

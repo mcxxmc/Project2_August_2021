@@ -1,8 +1,8 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 
-from common import create_model, compile_model
-from common import (
+from model.model import create_model, compile_model
+from static.const import (
     DATASET_PATH, IMAGE_SIZE, NUM_EPOCHS, BATCH_SIZE, WEIGHTS_SAVE_PATH
 )
 
@@ -11,7 +11,7 @@ def train(model=None, save_weights: bool = True):
     """
     Train a model and return it.
     Optionally save the weights.
-    Configurations including dataset paths and image size are set in and import from common.py.
+    Configurations including dataset paths and image size are set in and import from model.py.
     :param model: a keras model.
         Default is None. If None, a new model will be created.
         If a model is to be passed in using this parameter, the model passed in should not have been compiled.

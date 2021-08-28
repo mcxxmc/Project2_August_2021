@@ -1,6 +1,6 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import numpy as np
-from common import (
+from static.const import (
     TEST_DIR, IMAGE_SIZE
 )
 
