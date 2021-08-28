@@ -1,0 +1,5 @@
+s3/*.png
+PythonTensorflow/weights/
+PythonTensorflow/.idea/
+PythonTensorflow/__pycache__/
+projectGo/.idea/

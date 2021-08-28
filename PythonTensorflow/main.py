@@ -1,4 +1,5 @@
 from common import create_model, load_image, compile_model
+from common import S3_TO_PREDICT
 from test import test_model
 import os
 
@@ -11,8 +12,8 @@ compile_model(model)
 test_model(model)
 
 # predict some of the pictures
-img_names = os.listdir("./toPredict")
-prefix = "./toPredict/"
+img_names = os.listdir(S3_TO_PREDICT)
+prefix = S3_TO_PREDICT
 
 for img in img_names:
     print(img)

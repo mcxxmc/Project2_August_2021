@@ -8,9 +8,15 @@ import os
 
 LEARNING_RATE = 0.001  # start off with high rate first 0.001 and experiment with reducing it gradually
 
-DATA_LIST = os.listdir('D:/KaggleVehicleDetectionImageSet/train')
+# The path to training data; may vary depending on actual machines
 DATASET_PATH = 'D:/KaggleVehicleDetectionImageSet/train'
+# The path to testing data; may vary depending on actual machines
 TEST_DIR = 'D:/KaggleVehicleDetectionImageSet/test'
+
+# The path where the images waiting to be predicted are cached
+S3_TO_PREDICT = 'D:/Project2_August_2021/s3/toPredict'
+
+DATA_LIST = os.listdir('D:/KaggleVehicleDetectionImageSet/train')
 
 IMAGE_SIZE = (64, 64)  # size of the picture
 

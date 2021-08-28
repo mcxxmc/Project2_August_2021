@@ -3,43 +3,18 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"image"
 	"mime/multipart"
 	"net/http"
 	"projectGo/src/projectGo"
 )
 
-var channelsIO = 2  // number of threads for sql and for saving image to disk
 var formFileName = "img"
 
-var buffer = make(chan projectGo.BufferedImage)
+// S3ToPredict The path where the images waiting to be predicted are cached
+var S3ToPredict = "D:/Project2_August_2021/s3/toPredict"
 
 
-// stores the image in the channel.
-func bufferImage(c chan<- projectGo.BufferedImage, img projectGo.BufferedImage) {
-	c <- img
-	fmt.Println("A new image is in buffer.")
-}
-
-// writes the buffered image to disk
-func flushBufferedImage(c <-chan projectGo.BufferedImage) {
-	for {
-		bfImage := <- c
-		imgName := bfImage.ImgName
-		projectGo.SaveImage(imgName, bfImage.Img) // save the image to disk
-
-		//TODO: connect to tensorflow server to check the image
-
-		projectGo.Insert(imgName, true) // insert the record into the database
-		//TODO: move this to handler function when tensorflow server is on
-	}
-}
-
-func handlerGet(c *gin.Context) {
-	// return a html page
-	c.HTML(http.StatusOK, "index.html", nil)
-}
-
+// handler the uploaded image from the front end
 func handlerPostImage(c *gin.Context) {
 	fmt.Println("HandlerPostImage invoked.")
 
@@ -64,12 +39,7 @@ func handlerPostImage(c *gin.Context) {
 		}(openedFile)
 		projectGo.CheckErr(err)
 
-		img, _, err := image.Decode(openedFile)
-		projectGo.CheckErr(err)
-
-		bufferImage(buffer, projectGo.BufferedImage{ImgName: imgName, Img: img})
-		// the line above can be replaced by:
-		// err = c.SaveUploadedFile(form.File, projectGo.PicTargetDir+imgName)
+		err = c.SaveUploadedFile(file, S3ToPredict+ imgName)
 	} else {
 		if b == true {
 			msg = "true\n" + path
@@ -86,19 +56,19 @@ func handlerPostImage(c *gin.Context) {
 	fmt.Println("HandlerPostImage finished.")
 }
 
+// handle the response from the tensorflow server
+func handlerPredictedImage(c *gin.Context) {}
+
 func main()  {
 	projectGo.TryConnection()
 
-	for i := 0; i < channelsIO; i++ {
-		go flushBufferedImage(buffer)
-	}
-
 	router := gin.Default()
-	router.LoadHTMLGlob("html/*.html")
-	router.Static("/javascript", "./javascript")
 
-	router.GET("/", handlerGet)
+	// here the router is only responsible for the POST request, as the GET request is handled by the front end
 	router.POST("/imgSystem/", handlerPostImage)
+
+	// This url is for requests from the tensorflow server
+	router.POST("/fromTensorflow/", handlerPredictedImage)
 
 	err := router.Run(":8080")  // run at port 8080
 	projectGo.CheckErr(err)
