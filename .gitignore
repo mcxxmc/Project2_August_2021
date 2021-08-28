@@ -1,4 +1,6 @@
-s3/*.png
+s3/predicted/
+s3/toPredict/
+s3/train/
 PythonTensorflow/weights/
 PythonTensorflow/.idea/
 PythonTensorflow/__pycache__/
