@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"projectGo/src/projectGo"
@@ -16,8 +18,6 @@ var S3ToPredict = "D:/Project2_August_2021/s3/toPredict/"
 
 // handler the uploaded image from the front end
 func handlerPostImage(c *gin.Context) {
-	fmt.Println("HandlerPostImage invoked.")
-
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")  // IMPORTANT! allows CORS
 
 	// get the file from the form using the name of the key
@@ -66,12 +66,43 @@ func handlerPostImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"r": msg,
 	})
-
-	fmt.Println("HandlerPostImage finished.")
 }
 
 // handle the response from the tensorflow server
-func handlerPredictedImage(c *gin.Context) {}
+func handlerPredictedImage(c *gin.Context) {
+	// TODO
+}
+
+// handle the request to show all the picture info in a list
+func handlerShowList(c *gin.Context) {
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")  // IMPORTANT! allows CORS
+	records := projectGo.FetchAll()
+	c.JSON(http.StatusOK, records)
+}
+
+// handle the request to show pictures
+func handlerShowPictures(c * gin.Context) {
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	var temp projectGo.JSONShowPictures
+	var imageBundles projectGo.ImageBundles
+	err := c.BindJSON(&temp)
+	if err == nil {
+		paths := projectGo.FetchPathsN(temp.Offset, temp.N)
+		for i:= 0; i < len(paths); i ++ {
+			path := paths[i]
+			file, err:= ioutil.ReadFile(path)
+			if err == nil {
+				imageBundles.Images = append(imageBundles.Images,
+					projectGo.ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: path})
+			}else{
+				fmt.Println(err)
+			}
+		}
+	}else{
+		fmt.Println(err)
+	}
+	c.JSON(http.StatusOK, imageBundles)
+}
 
 func main()  {
 	projectGo.TryConnection()
@@ -83,6 +114,12 @@ func main()  {
 
 	// This url is for requests from the tensorflow server
 	router.POST("/fromTensorflow/", handlerPredictedImage)
+
+	// for showPictures
+	router.POST("/showPictures/", handlerShowPictures)
+
+	// This url is for showList Request
+	router.GET("/showList/", handlerShowList)
 
 	err := router.Run(":8080")  // run at port 8080
 	projectGo.CheckErr(err)

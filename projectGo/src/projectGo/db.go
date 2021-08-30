@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"strconv"
 )
 
 
@@ -31,6 +32,11 @@ var sqlUpdateLabel = "UPDATE picture SET label=? WHERE name=?"
 var sqlQueryTry = "SELECT name FROM picture WHERE id=1;"
 
 var sqlQueryName = "SELECT path, prediction, label FROM picture WHERE name=?;"
+
+var sqlFetchAll = "SELECT id, name, path, prediction, label FROM picture"
+
+var sqlFetchPaths = "SELECT path FROM picture LIMIT "
+var comma = ","
 
 
 // opens a connection to the database.
@@ -177,4 +183,64 @@ func QueryName(name string) (bool, *bool, *bool, *string) {
 	}else {
 		return false, nil, nil, nil
 	}
+}
+
+// FetchAll fetch all the records and return id, name, path, prediction and label
+func FetchAll() Records {
+	db := openDb()
+	defer closeDb(db)
+
+	res, err := db.Query(sqlFetchAll)
+
+	defer func(res *sql.Rows) {
+		err := res.Close()
+		CheckErr(err)
+	}(res)
+
+	CheckErr(err)
+
+	var records Records  // initialize a slice first
+	var id int
+	var name string
+	var path string
+	var prediction *bool
+	var label *bool
+
+	for {
+		if res.Next(){
+			err := res.Scan(&id, &name, &path, &prediction, &label)
+			CheckErr(err)
+			records.Recs = append(records.Recs,
+				Record{Id: id, Name: name, Path: path, Prediction: prediction, Label: label})
+		} else{
+			break
+		}
+	}
+
+	return records
+}
+
+// FetchPathsN fetches the first n paths starting from the offset
+func FetchPathsN(offset int, n int) []string {
+	var r []string
+	var path string
+	command := sqlFetchPaths + strconv.Itoa(offset) + comma + strconv.Itoa(n)
+	db := openDb()
+	defer closeDb(db)
+	res, err := db.Query(command)
+	defer func(res *sql.Rows) {
+		err := res.Close()
+		CheckErr(err)
+	}(res)
+	CheckErr(err)
+	for {
+		if res.Next(){
+			err := res.Scan(&path)
+			CheckErr(err)
+			r = append(r, path)
+		}else {
+			break
+		}
+	}
+	return r
 }

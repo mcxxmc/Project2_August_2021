@@ -1,4 +1,4 @@
-let urlPostImage = 'http://localhost:8080/imgSystem/'  // must specify http to enable CORS
+let urlPostImage = 'http://localhost:8080/imgSystem/';  // must specify http to enable CORS
 
 $(document).ready(function (e) {
     $('#form_img').on('submit',(function(e) {
@@ -18,7 +18,7 @@ $(document).ready(function (e) {
                 console.log(data);
             },
             error: function(data){
-                alert("error!")
+                alert("error!");
                 console.log("error");
                 console.log(data);
             }
