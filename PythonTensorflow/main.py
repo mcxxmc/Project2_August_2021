@@ -10,5 +10,6 @@ compile_model(model)
 # launching the keras model by trying some tests
 # test_model(model)
 
+# create a scheduler thread
 scheduler = Scheduler(model)
-scheduler.launch()
+scheduler.start()

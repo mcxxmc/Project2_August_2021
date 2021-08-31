@@ -4,4 +4,9 @@ s3/train/
 PythonTensorflow/weights/
 PythonTensorflow/.idea/
 PythonTensorflow/__pycache__/
+PythonTensorflow/model/__pycache__/
+PythonTensorflow/scheduler/__pycache__/
+PythonTensorflow/static/__pycache__/
 projectGo/.idea/
+openCV/.idea/
+openCV/__pycache__/
