@@ -28,3 +28,15 @@ INSERT INTO picture(name, path, prediction, label) values ("extra2.png", "D:/Pro
 INSERT INTO picture(name, path, prediction, label) values ("extra3.png", "D:/Project2_August_2021/s3/train/non-vehicles/extra3.png", null, false);
 INSERT INTO picture(name, path, prediction, label) values ("extra4.png", "D:/Project2_August_2021/s3/train/non-vehicles/extra4.png", null, false);
 INSERT INTO picture(name, path, prediction, label) values ("extra5.png", "D:/Project2_August_2021/s3/train/non-vehicles/extra5.png", null, false);
+
+
+For Testing labelPictures:
+INSERT INTO picture(name, path, prediction, label) values("ttt0.png", "D:/Project2_August_2021/s3/predicted/vehicles/ttt0.png", true, null);
+INSERT INTO picture(name, path, prediction, label) values("ttt1.png", "D:/Project2_August_2021/s3/predicted/vehicles/ttt1.png", true, null);
+INSERT INTO picture(name, path, prediction, label) values("ttt2.png", "D:/Project2_August_2021/s3/predicted/non-vehicles/ttt2.png", false, null);
+select * from picture;
+
+delete from picture where name="ttt0.png";
+delete from picture where name="ttt1.png";
+delete from picture where name="ttt2.png";
+select * from picture;

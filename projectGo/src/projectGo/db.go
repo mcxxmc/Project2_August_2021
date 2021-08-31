@@ -23,11 +23,13 @@ var sqlCreateTable = "CREATE TABLE picture" + "(" +
 	"UNIQUE (name)" + ");"
 
 var sqlInsert = "INSERT INTO picture(name, path, prediction, label) values(?,?,?,?)"
-var sqlInsertWithPrediction = "INSERT INTO picture(name, path, prediction) values(?,?,?,)"
+var sqlInsertWithPrediction = "INSERT INTO picture(name, path, prediction) values(?,?,?)"
 var sqlInsertWithLabel = "INSERT INTO picture(name, path, label) values(?,?,?)"
 
 var sqlUpdatePrediction = "UPDATE picture SET prediction=? WHERE name=?"
 var sqlUpdateLabel = "UPDATE picture SET label=? WHERE name=?"
+
+var sqlUpdatePathAndLabel = "UPDATE picture SET path=?, label=? WHERE name=?"
 
 var sqlQueryTry = "SELECT name FROM picture WHERE id=1;"
 
@@ -35,8 +37,10 @@ var sqlQueryName = "SELECT path, prediction, label FROM picture WHERE name=?;"
 
 var sqlFetchAll = "SELECT id, name, path, prediction, label FROM picture"
 
-var sqlFetchPaths = "SELECT path FROM picture LIMIT "
+var sqlLimit = " LIMIT "
 var comma = ","
+
+var sqlFetchUnlabeled = "SELECT name, path FROM picture where label IS NULL"
 
 
 // opens a connection to the database.
@@ -155,6 +159,17 @@ func UpdateLabel(name string, label bool) {
 	fmt.Printf("Updates Succeeds. Affected rows: %d\n", n)
 }
 
+// UpdatePathAndLabel updates the path and the label
+func UpdatePathAndLabel(name string, path string, label bool) {
+	db := openDb()
+	defer closeDb(db)
+	res, err := db.Exec(sqlUpdatePathAndLabel, path, label, name)
+	CheckErr(err)
+	n, err := res.RowsAffected()
+	CheckErr(err)
+	fmt.Println("Updates Succeeds. Affected rows: %d\n", n)
+}
+
 // QueryName checks if the name is in the database.
 // Returns a tuple, of which the first bool means whether the name is in the database.
 // The second bool is "prediction" and the third bool is "label".
@@ -220,11 +235,15 @@ func FetchAll() Records {
 	return records
 }
 
-// FetchPathsN fetches the first n paths starting from the offset
-func FetchPathsN(offset int, n int) []string {
-	var r []string
+// FetchN fetches the first n records starting from the offset
+func FetchN(offset int, n int) []PathAndDesc {
+	var r []PathAndDesc
+	var id int
+	var name string
 	var path string
-	command := sqlFetchPaths + strconv.Itoa(offset) + comma + strconv.Itoa(n)
+	var prediction *bool
+	var label *bool
+	command := sqlFetchAll + sqlLimit + strconv.Itoa(offset) + comma + strconv.Itoa(n)
 	db := openDb()
 	defer closeDb(db)
 	res, err := db.Query(command)
@@ -235,9 +254,34 @@ func FetchPathsN(offset int, n int) []string {
 	CheckErr(err)
 	for {
 		if res.Next(){
-			err := res.Scan(&path)
+			err := res.Scan(&id, &name, &path, &prediction, &label)
 			CheckErr(err)
-			r = append(r, path)
+			r = append(r, PathAndDesc{Path: path, Text: generateText(id, name, prediction, label)})
+		}else {
+			break
+		}
+	}
+	return r
+}
+
+// FetchUnlabeled fetch all the unlabeled records and return the names and the paths
+func FetchUnlabeled() []UnlabeledRecord {
+	var r []UnlabeledRecord
+	var name string
+	var path string
+	db := openDb()
+	defer closeDb(db)
+	res, err := db.Query(sqlFetchUnlabeled)
+	defer func(res *sql.Rows) {
+		err := res.Close()
+		CheckErr(err)
+	}(res)
+	CheckErr(err)
+	for {
+		if res.Next(){
+			err := res.Scan(&name, &path)
+			CheckErr(err)
+			r = append(r, UnlabeledRecord{Name: name, Path: path})
 		}else {
 			break
 		}
