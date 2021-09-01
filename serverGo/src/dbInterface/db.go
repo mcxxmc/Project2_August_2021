@@ -1,4 +1,4 @@
-package projectGo
+package dbInterface
 
 import (
 	"database/sql"
@@ -47,7 +47,7 @@ var sqlFetchUnlabeled = "SELECT name, path FROM picture where label IS NULL"
 func openDb() *sql.DB {
 	// connect to a MySQL server as a user named localuser to a database named august2021
 	db, err := sql.Open("mysql", "localuser:localuserpassword@tcp(localhost:3306)/august2021")
-	CheckErr(err)
+	checkErr(err)
 	fmt.Println("Db connection opens.")
 	return db
 }
@@ -55,27 +55,27 @@ func openDb() *sql.DB {
 // closes the connection.
 func closeDb(db *sql.DB) {
 	err := db.Close()
-	CheckErr(err)
+	checkErr(err)
 	fmt.Println("Db connection closes.")
 }
 
 // tests if the database functions properly.
 func testDb(db *sql.DB) error {
 	_, err := db.Query(sqlQueryTry)
-	CheckErr(err)
+	checkErr(err)
 	return err
 }
 
 // RecreateTable deletes the old table and rebuild a new one with default values.
 func RecreateTable(db *sql.DB) {
 	_, err := db.Exec(sqlDropTable)
-	CheckErr(err)
+	checkErr(err)
 
 	_, err = db.Exec(sqlCreateTable)
-	CheckErr(err)
+	checkErr(err)
 
 	_, err = db.Exec(sqlInsert, templatePNG, templatePath, nil, true)
-	CheckErr(err)
+	checkErr(err)
 }
 
 // TryConnection tries the connection to the database and checks if it functions properly.
@@ -97,10 +97,10 @@ func Insert(name string, path string, prediction bool, label bool) {
 	defer closeDb(db)
 
 	res, err := db.Exec(sqlInsert, name, path, prediction, label)
-	CheckErr(err)
+	checkErr(err)
 
 	id, err := res.LastInsertId()
-	CheckErr(err)
+	checkErr(err)
 
 	fmt.Println("The last inserted Id is: ", id)
 }
@@ -111,10 +111,10 @@ func InsertWithPrediction(name string, path string, prediction bool) {
 	defer closeDb(db)
 
 	res, err := db.Exec(sqlInsertWithPrediction, name, path, prediction)
-	CheckErr(err)
+	checkErr(err)
 
 	id, err := res.LastInsertId()
-	CheckErr(err)
+	checkErr(err)
 
 	fmt.Println("The last inserted Id is: ", id)
 }
@@ -125,10 +125,10 @@ func InsertWithLabel(name string, path string, label bool) {
 	defer closeDb(db)
 
 	res, err := db.Exec(sqlInsertWithLabel, name, path, label)
-	CheckErr(err)
+	checkErr(err)
 
 	id, err := res.LastInsertId()
-	CheckErr(err)
+	checkErr(err)
 
 	fmt.Println("The last inserted Id is: ", id)
 }
@@ -139,10 +139,10 @@ func UpdatePrediction(name string, prediction bool) {
 	defer closeDb(db)
 
 	res, err := db.Exec(sqlUpdatePrediction, prediction, name)
-	CheckErr(err)
+	checkErr(err)
 
 	n, err := res.RowsAffected()
-	CheckErr(err)
+	checkErr(err)
 	fmt.Printf("Updates Succeeds. Affected rows: %d\n", n)
 }
 
@@ -152,10 +152,10 @@ func UpdateLabel(name string, label bool) {
 	defer closeDb(db)
 
 	res, err := db.Exec(sqlUpdateLabel, label, name)
-	CheckErr(err)
+	checkErr(err)
 
 	n, err := res.RowsAffected()
-	CheckErr(err)
+	checkErr(err)
 	fmt.Printf("Updates Succeeds. Affected rows: %d\n", n)
 }
 
@@ -164,9 +164,9 @@ func UpdatePathAndLabel(name string, path string, label bool) {
 	db := openDb()
 	defer closeDb(db)
 	res, err := db.Exec(sqlUpdatePathAndLabel, path, label, name)
-	CheckErr(err)
+	checkErr(err)
 	n, err := res.RowsAffected()
-	CheckErr(err)
+	checkErr(err)
 	fmt.Println("Updates Succeeds. Affected rows: %d\n", n)
 }
 
@@ -183,17 +183,17 @@ func QueryName(name string) (bool, *bool, *bool, *string) {
 
 	defer func(res *sql.Rows) {
 		err := res.Close()
-		CheckErr(err)
+		checkErr(err)
 	}(res)
 
-	CheckErr(err)
+	checkErr(err)
 
 	if res.Next(){
 		path := ""
 		prediction := false
 		label := false
 		err := res.Scan(&path, &prediction, &label)
-		CheckErr(err)
+		checkErr(err)
 		return true, &prediction, &label, &path
 	}else {
 		return false, nil, nil, nil
@@ -209,10 +209,10 @@ func FetchAll() Records {
 
 	defer func(res *sql.Rows) {
 		err := res.Close()
-		CheckErr(err)
+		checkErr(err)
 	}(res)
 
-	CheckErr(err)
+	checkErr(err)
 
 	var records Records  // initialize a slice first
 	var id int
@@ -224,7 +224,7 @@ func FetchAll() Records {
 	for {
 		if res.Next(){
 			err := res.Scan(&id, &name, &path, &prediction, &label)
-			CheckErr(err)
+			checkErr(err)
 			records.Recs = append(records.Recs,
 				Record{Id: id, Name: name, Path: path, Prediction: prediction, Label: label})
 		} else{
@@ -249,13 +249,13 @@ func FetchN(offset int, n int) []PathAndDesc {
 	res, err := db.Query(command)
 	defer func(res *sql.Rows) {
 		err := res.Close()
-		CheckErr(err)
+		checkErr(err)
 	}(res)
-	CheckErr(err)
+	checkErr(err)
 	for {
 		if res.Next(){
 			err := res.Scan(&id, &name, &path, &prediction, &label)
-			CheckErr(err)
+			checkErr(err)
 			r = append(r, PathAndDesc{Path: path, Text: generateText(id, name, prediction, label)})
 		}else {
 			break
@@ -274,13 +274,13 @@ func FetchUnlabeled() []UnlabeledRecord {
 	res, err := db.Query(sqlFetchUnlabeled)
 	defer func(res *sql.Rows) {
 		err := res.Close()
-		CheckErr(err)
+		checkErr(err)
 	}(res)
-	CheckErr(err)
+	checkErr(err)
 	for {
 		if res.Next(){
 			err := res.Scan(&name, &path)
-			CheckErr(err)
+			checkErr(err)
 			r = append(r, UnlabeledRecord{Name: name, Path: path})
 		}else {
 			break

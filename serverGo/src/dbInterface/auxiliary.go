@@ -1,4 +1,4 @@
-package projectGo
+package dbInterface
 
 import (
 	"fmt"
@@ -50,18 +50,10 @@ type ImageBundles struct {
 	Images []ImageBundle `json:"images"`
 }
 
-
-// CheckErr checks the error and prints it out if not nil
-func CheckErr(err error) {
+// checkErr checks the error and prints it out if not nil
+func checkErr(err error) {
 	if err != nil {
 		fmt.Println(err)
-	}
-}
-
-// CheckPanic checks the error and raise panic if needed
-func CheckPanic(err error) {
-	if err != nil {
-		panic(err)
 	}
 }
 

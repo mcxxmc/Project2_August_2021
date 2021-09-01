@@ -8,21 +8,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"projectGo/src/projectGo"
+	"projectGo/src/common"
+	"projectGo/src/dbInterface"
 )
-
-var formFileName = "img"
-
-// S3ToPredict The path where the images waiting to be predicted are cached
-var S3ToPredict = "D:/Project2_August_2021/s3/toPredict/"
-
-// S3VehiclePrefix The path prefix for vehicle images,labeled
-var S3VehiclePrefix = "D:/Project2_August_2021/s3/train/vehicles/"
-
-// S3NonVehiclePrefix The path prefix for non-vehicle images,labeled
-var S3NonVehiclePrefix = "D:/Project2_August_2021/s3/train/non-vehicles/"
-
-var resultVehicle = "v"
 
 // The cache for labelImages; hold reference to the name and the path; will be useful when there are
 // multiple labelers
@@ -34,12 +22,12 @@ func handlerPostImage(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")  // IMPORTANT! allows CORS
 
 	// get the file from the form using the name of the key
-	file, err := c.FormFile(formFileName)
-	projectGo.CheckErr(err)
+	file, err := c.FormFile(common.FormFileName)
+	checkErr(err)
 
 	// check if the image exists in our database
 	imgName := file.Filename
-	exist, prediction, label, path := projectGo.QueryName(imgName)
+	exist, prediction, label, path := dbInterface.QueryName(imgName)
 
 	msg := ""
 
@@ -50,11 +38,11 @@ func handlerPostImage(c *gin.Context) {
 		openedFile, err := file.Open()
 		defer func(openedFile multipart.File) {
 			err := openedFile.Close()
-			projectGo.CheckErr(err)
+			checkErr(err)
 		}(openedFile)
-		projectGo.CheckErr(err)
+		checkErr(err)
 
-		err = c.SaveUploadedFile(file, S3ToPredict + imgName)
+		err = c.SaveUploadedFile(file, common.S3ToPredict + imgName)
 	} else {  //else, check the prediction and the label
 		if prediction != nil {
 			if *prediction == true {
@@ -89,18 +77,18 @@ func handlerPredictedImage(c *gin.Context) {
 // handle the request to show all the picture info in a list
 func handlerShowList(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")  // IMPORTANT! allows CORS
-	records := projectGo.FetchAll()
+	records := dbInterface.FetchAll()
 	c.JSON(http.StatusOK, records)
 }
 
 // handle the request to show pictures
 func handlerShowPictures(c * gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	var temp projectGo.JSONShowPictures
-	var imageBundles projectGo.ImageBundles
+	var temp dbInterface.JSONShowPictures
+	var imageBundles dbInterface.ImageBundles
 	err := c.BindJSON(&temp)
 	if err == nil {
-		pathsDescs := projectGo.FetchN(temp.Offset, temp.N)
+		pathsDescs := dbInterface.FetchN(temp.Offset, temp.N)
 		var path string
 		var text string
 		for i := 0; i < len(pathsDescs); i ++ {
@@ -109,7 +97,7 @@ func handlerShowPictures(c * gin.Context) {
 			file, err := ioutil.ReadFile(path)
 			if err == nil {
 				imageBundles.Images = append(imageBundles.Images,
-					projectGo.ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: text})
+					dbInterface.ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: text})
 			}else{
 				fmt.Println(err)
 			}
@@ -123,8 +111,8 @@ func handlerShowPictures(c * gin.Context) {
 // handle request to label the pictures; GET
 func handlerLabelPicturesGET(c *gin.Context){
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	var imageBundles projectGo.ImageBundles
-	unlabeledRecords := projectGo.FetchUnlabeled()
+	var imageBundles dbInterface.ImageBundles
+	unlabeledRecords := dbInterface.FetchUnlabeled()
 	var name string
 	var path string
 	for i := 0; i < len(unlabeledRecords); i ++ {
@@ -133,7 +121,7 @@ func handlerLabelPicturesGET(c *gin.Context){
 		file, err := ioutil.ReadFile(path)
 		if err == nil {
 			imageBundles.Images = append(imageBundles.Images,
-				projectGo.ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: name})
+				dbInterface.ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: name})
 			// cache the name-path pair
 			name2path[name] = path
 		}else {
@@ -146,7 +134,7 @@ func handlerLabelPicturesGET(c *gin.Context){
 // handle request to label the pictures; POST
 func handlerLabelPicturesPOST(c *gin.Context){
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	var temp projectGo.JSONLabeledResults
+	var temp dbInterface.JSONLabeledResults
 	err := c.BindJSON(&temp)
 	if err == nil {
 		results := temp.Results
@@ -164,17 +152,17 @@ func handlerLabelPicturesPOST(c *gin.Context){
 				// else, move the pictures to the correct folder.
 				if exist == true {
 					val := result.Val
-					if val == resultVehicle {
-						newLocation = S3VehiclePrefix + name
+					if val == common.ResultIsVehicle {
+						newLocation = common.S3VehiclePrefix + name
 						isVehicle = true
 					}else {
-						newLocation = S3NonVehiclePrefix + name
+						newLocation = common.S3NonVehiclePrefix + name
 						isVehicle = false
 					}
 					err := os.Rename(path, newLocation)
 					if err == nil {
 						// also, update the database
-						projectGo.UpdatePathAndLabel(name, newLocation, isVehicle)
+						dbInterface.UpdatePathAndLabel(name, newLocation, isVehicle)
 						// remove the name from the map
 						delete(name2path, name)
 					}else {
@@ -190,7 +178,7 @@ func handlerLabelPicturesPOST(c *gin.Context){
 }
 
 func main()  {
-	projectGo.TryConnection()
+	dbInterface.TryConnection()
 
 	router := gin.Default()
 
@@ -211,5 +199,5 @@ func main()  {
 	router.POST("/labelPictures/", handlerLabelPicturesPOST)
 
 	err := router.Run(":8080")  // run at port 8080
-	projectGo.CheckErr(err)
+	checkErr(err)
 }

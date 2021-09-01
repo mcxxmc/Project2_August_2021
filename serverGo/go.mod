@@ -1,4 +1,4 @@
-module projectGo
+module serverGo
 
 go 1.16
 
