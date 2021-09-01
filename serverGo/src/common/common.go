@@ -1,5 +1,7 @@
 package common
 
+import "fmt"
+
 // FormFileName The name of the form data in the form
 var FormFileName = "img"
 
@@ -13,3 +15,10 @@ var S3VehiclePrefix = "D:/Project2_August_2021/s3/train/vehicles/"
 var S3NonVehiclePrefix = "D:/Project2_August_2021/s3/train/non-vehicles/"
 
 var ResultIsVehicle = "v"
+
+// CheckErr checks the error and prints it out if not nil
+func CheckErr(err error) {
+	if err != nil {
+		fmt.Println(err)
+	}
+}
