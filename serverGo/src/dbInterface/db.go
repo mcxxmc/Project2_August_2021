@@ -181,13 +181,13 @@ func QueryName(name string) (bool, *bool, *bool, *string) {
 
 	common.CheckErr(err)
 
+	var path string
+	var prediction *bool  // should be declared as pointers
+	var label *bool
 	if res.Next(){
-		path := ""
-		prediction := false
-		label := false
 		err := res.Scan(&path, &prediction, &label)
 		common.CheckErr(err)
-		return true, &prediction, &label, &path
+		return true, prediction, label, &path
 	}else {
 		return false, nil, nil, nil
 	}

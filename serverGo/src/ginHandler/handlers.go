@@ -151,29 +151,38 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 		}else{
 			var newLocation string
 			var isVehicle bool
+			var hasVal = false
 			for i := 0; i < len(results); i ++ {
 				result := results[i]
 				name := result.Name
 				path, exist := name2path[name]
 				// Ignore if there is no such name; maybe the record has been updated by another user.
 				// Else, move the pictures to the correct folder.
+				// Be careful if the val is empty.
 				if exist == true {
 					val := result.Val
 					if val == common.ResultIsVehicle {
 						newLocation = common.S3VehiclePrefix + name
 						isVehicle = true
-					}else {
+						hasVal = true
+					}else if val == common.ResultIsNonVehicle {
 						newLocation = common.S3NonVehiclePrefix + name
 						isVehicle = false
+						hasVal = true
 					}
-					err := os.Rename(path, newLocation)
-					if err == nil {
-						// Also, update the database.
-						dbInterface.UpdatePathAndLabel(name, newLocation, isVehicle)
-						// Remove the name from the map.
-						delete(name2path, name)
-					}else {
-						fmt.Println(err)
+					if hasVal == true {
+						// Move the image to the corresponding folder.
+						err := os.Rename(path, newLocation)
+						if err == nil {
+							// Also, update the database.
+							dbInterface.UpdatePathAndLabel(name, newLocation, isVehicle)
+							// Remove the name from the map.
+							delete(name2path, name)
+						}else {
+							fmt.Println(err)
+						}
+					} else {
+						fmt.Println("LabelPicturesPost: Unexpected val.")
 					}
 				}
 			}

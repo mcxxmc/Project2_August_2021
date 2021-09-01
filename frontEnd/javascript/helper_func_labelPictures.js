@@ -46,9 +46,13 @@ function collectRadioChoices(){
     for (let i = 0; i < allPictureNames.length; i ++){
         name = allPictureNames[i];
         val = $('input[name="radio_' + name + '"]:checked').val();
-        let tmp = {"name": name, "val": val};
-        r["results"].push(tmp);
+        // check if the val is empty
+        if (val != null){
+            let tmp = {"name": name, "val": val};
+            r["results"].push(tmp);
+        }
     }
+    alert(JSON.stringify(r))
     return r;
 }
 
