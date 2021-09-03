@@ -16,5 +16,5 @@ message ImageInfo {
   string path = 2;
 }
 
-// run the code below to generate gRPC files:
+// cd to grpc_basic directory; run the code below to generate gRPC files:
 // python -m grpc_tools.protoc -I./ --python_out=. --grpc_python_out=. ./collect.proto

@@ -3,7 +3,7 @@ import numpy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from const import (
+from const.const import (
     S3_TO_PREDICT, chars
 )
 import random
@@ -98,12 +98,14 @@ def reshape_image_smaller(img: numpy.ndarray, new_height: int = 64, new_width: i
     return r
 
 
-def save_image(reshaped_img: numpy.ndarray, path: str = S3_TO_PREDICT) -> None:
+def save_image(reshaped_img: numpy.ndarray, folder: str = S3_TO_PREDICT) -> (str, str):
     """
-    Save the image to disk.
+    Save the image to disk. Returns the image name and the path.
     :param reshaped_img: numpy.ndarray.
-    :param path: str. With default.
-    :return: None.
+    :param folder: str. With default.
+    :return: (str, str).
     """
-    imgPath = path + generate_random_png_name()
+    name = generate_random_png_name()
+    imgPath = folder + name
     plt.imsave(imgPath, reshaped_img.astype(np.uint8))
+    return name, imgPath
