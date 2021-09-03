@@ -12,11 +12,9 @@ class CollectorServicer(collect_pb2_grpc.CollectorServicer):
         """
         Receive the request to collect a new image using the camera;
         store the image in S3 and return the information of that image.
-        :param request:
-        :param context:
+        :param request: collect_pb2.Empty
+        :param context: grpc._server._Context
         :return:
         """
-        print(type(request))
-        print(type(context))
         name, imgPath = take_picture()
         return collect_pb2.ImageInfo(name=name, path=imgPath)

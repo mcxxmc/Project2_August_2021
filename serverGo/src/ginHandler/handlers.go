@@ -10,9 +10,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"serverGo/src/OpenCVGRPC"
 	"serverGo/src/common"
 	"serverGo/src/dbInterface"
-	"serverGo/src/gRPCHandler"
 	"time"
 )
 
@@ -92,6 +92,8 @@ func HandlerPredictedImage(c *gin.Context) {
 
 // HandlerOpenCV communicates with the OpenCV server.
 func HandlerOpenCV(c *gin.Context) {
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+
 	// connects the OpenCV server through grpc
 	connectionOpenCV, err := grpc.Dial(common.GRPCOpenCVInsecurePort, grpc.WithInsecure(), grpc.WithBlock())
 	defer func(connectionOpenCV *grpc.ClientConn) {
@@ -99,18 +101,24 @@ func HandlerOpenCV(c *gin.Context) {
 		common.CheckErr(err)
 	}(connectionOpenCV)
 	common.CheckErr(err)
-	clientOpenCV := gRPCHandler.NewGRPCHandlerClient(connectionOpenCV)
+	clientOpenCV := OpenCVGRPC.NewCollectorClient(connectionOpenCV)
 
 	// send the request
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	// The timeout should be long enough; otherwise there will be errors
+	// TODO: maybe remove timeout
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
 	defer cancel()
-	r, err := clientOpenCV.GRPCHandlerOpenCVCollector(ctx, &gRPCHandler.Empty{})
+	r, err := clientOpenCV.CollectImage(ctx, &OpenCVGRPC.Empty{})
 	common.CheckErr(err)
 
 	// update database
+	fmt.Println()
 	name := r.Name
 	path := r.Path
 	dbInterface.InsertBared(name, path)
+
+	// make response
+	c.Status(http.StatusOK)
 }
 
 // HandlerShowList handles the request to show information of all the images in a list.

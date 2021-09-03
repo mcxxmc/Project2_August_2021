@@ -16,7 +16,7 @@ def capture(camera_seq: int = 0) -> numpy.ndarray:
         The sequence number of the camera on the device. Default is 0. May vary depends on machine.
     :return: numpy.ndarray.
     """
-    camera = cv.VideoCapture(camera_seq)  # access the webcam
+    camera = cv.VideoCapture(camera_seq, cv.CAP_DSHOW)  # access the webcam
 
     frame = None
 
@@ -24,6 +24,7 @@ def capture(camera_seq: int = 0) -> numpy.ndarray:
         _, frame = camera.read()
 
     camera.release()
+    # cv.destroyAllWindows()
 
     return frame
 

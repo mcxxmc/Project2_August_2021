@@ -23,9 +23,9 @@ func main()  {
 	// TODO
 	router.POST("/fromTensorflow/", ginHandler.HandlerPredictedImage)
 
-	// For interaction with the OpenCV server. Receive unpredicted records and encode them into the database.
-	// TODO
-	router.POST("/fromOpenCV", ginHandler.HandlerOpenCV)
+	// For "OpenCV". When a user visits this link remotely, the camera will be used.
+	// TODO: safety / authorization
+	router.GET("/fromOpenCV/", ginHandler.HandlerOpenCV)
 
 	// For "showList". Show all records in our database.
 	router.GET("/showList/", ginHandler.HandlerShowList)
