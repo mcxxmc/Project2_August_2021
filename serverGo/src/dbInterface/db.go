@@ -38,7 +38,7 @@ var sqlFetchUnlabeled = "SELECT name, path FROM picture where label IS NULL"
 
 // Opens a connection to the database.
 func openDb() *sql.DB {
-	// connect to a MySQL server as a user named localuser to a database named august2021
+	// connect to a MySQL server as a user named "localuser" to a database named august2021
 	db, err := sql.Open("mysql", "localuser:localuserpassword@tcp(localhost:3306)/august2021")
 	common.CheckErr(err)
 	fmt.Println("Db connection opens.")
@@ -75,7 +75,11 @@ func RecreateTable(db *sql.DB) {
 func TryConnection() {
 	db := openDb()
 	defer closeDb(db)
-	err := testDb(db)
+	// Open doesn't open a connection. Check if the connection is valid and stop the program if it is not.
+	err := db.Ping()
+	common.PanicErr(err)
+	// Check if the table exist:
+	err = testDb(db)
 	if err != nil {
 		RecreateTable(db)
 		fmt.Println("Table rebuilt.")

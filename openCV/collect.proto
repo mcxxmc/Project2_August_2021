@@ -1,0 +1,20 @@
+syntax="proto3";
+
+// The greeting service definition.
+service Collector {
+  // Receive the request to collect a new image using the camera;
+  // store the image in S3 and return the information of that image.
+  rpc collectImage (Empty) returns (ImageInfo) {}
+}
+
+// Empty message.
+message Empty {}
+
+// The information of the image containing name and path.
+message ImageInfo {
+  string name = 1;
+  string path = 2;
+}
+
+// run the code below to generate gRPC files:
+// python -m grpc_tools.protoc -I./ --python_out=. --grpc_python_out=. ./collect.proto

@@ -23,3 +23,10 @@ func CheckErr(err error) {
 		fmt.Println(err)
 	}
 }
+
+// PanicErr raises a panic if the error is not nil.
+func PanicErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
