@@ -25,6 +25,7 @@ var sqlCreateTable = "CREATE TABLE picture" + "(" +
 var sqlInsert = "INSERT INTO picture(name, path, prediction, label) values(?,?,?,?)"
 var sqlInsertWithPrediction = "INSERT INTO picture(name, path, prediction) values(?,?,?)"
 var sqlInsertWithLabel = "INSERT INTO picture(name, path, label) values(?,?,?)"
+var sqlInsertBared = "INSERT INTO picture(name, path) values(?,?)"
 var sqlUpdatePrediction = "UPDATE picture SET prediction=? WHERE name=?"
 var sqlUpdateLabel = "UPDATE picture SET label=? WHERE name=?"
 var sqlUpdatePathAndLabel = "UPDATE picture SET path=?, label=? WHERE name=?"
@@ -92,42 +93,36 @@ func TryConnection() {
 func Insert(name string, path string, prediction bool, label bool) {
 	db := openDb()
 	defer closeDb(db)
-
-	res, err := db.Exec(sqlInsert, name, path, prediction, label)
+	_, err := db.Exec(sqlInsert, name, path, prediction, label)
 	common.CheckErr(err)
 
-	id, err := res.LastInsertId()
-	common.CheckErr(err)
-
-	fmt.Println("The last inserted Id is: ", id)
+	// id, err := res.LastInsertId()
+	// common.CheckErr(err)
+	// fmt.Println("The last inserted Id is: ", id)
 }
 
 // InsertWithPrediction inserts a new record into the database.
 func InsertWithPrediction(name string, path string, prediction bool) {
 	db := openDb()
 	defer closeDb(db)
-
-	res, err := db.Exec(sqlInsertWithPrediction, name, path, prediction)
+	_, err := db.Exec(sqlInsertWithPrediction, name, path, prediction)
 	common.CheckErr(err)
-
-	id, err := res.LastInsertId()
-	common.CheckErr(err)
-
-	fmt.Println("The last inserted Id is: ", id)
 }
 
 // InsertWithLabel inserts a new record into the database.
 func InsertWithLabel(name string, path string, label bool) {
 	db := openDb()
 	defer closeDb(db)
-
-	res, err := db.Exec(sqlInsertWithLabel, name, path, label)
+	_, err := db.Exec(sqlInsertWithLabel, name, path, label)
 	common.CheckErr(err)
+}
 
-	id, err := res.LastInsertId()
+// InsertBared inserts a new record with name and path into the database.
+func InsertBared(name string, path string) {
+	db := openDb()
+	defer closeDb(db)
+	_, err := db.Exec(sqlInsertBared, name, path)
 	common.CheckErr(err)
-
-	fmt.Println("The last inserted Id is: ", id)
 }
 
 // UpdatePrediction updates the prediction attribute.

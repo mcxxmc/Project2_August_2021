@@ -17,6 +17,9 @@ var S3NonVehiclePrefix = "D:/Project2_August_2021/s3/train/non-vehicles/"
 var ResultIsVehicle = "v"
 var ResultIsNonVehicle = "nv"
 
+var GRPCGoPort = ":50050"
+var GRPCOpenCVInsecurePort = "localhost:50051"
+
 // CheckErr checks the error and prints it out if not nil
 func CheckErr(err error) {
 	if err != nil {

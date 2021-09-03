@@ -9,3 +9,5 @@ CAMERA_SEQ = 1
 
 # the default pooling method
 DEFAULT_POOLING = "mid"
+
+GRPC_INSECURE_PORT = '[::]:50051'

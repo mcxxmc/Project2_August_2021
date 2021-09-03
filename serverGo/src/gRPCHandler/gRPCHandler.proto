@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-option go_package = "./middlewareGRPC";
+option go_package = "./gRPCHandler";
 
-service middlewareGRPC {
-  rpc middlewareOpenCVCollector(ImageInfo) returns(Empty) {}
+service gRPCHandler {
+  rpc gRPCHandlerOpenCVCollector(Empty) returns(ImageInfo) {}
 }
 
 // Empty message.

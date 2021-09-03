@@ -1,15 +1,19 @@
 package ginHandler
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"serverGo/src/common"
 	"serverGo/src/dbInterface"
+	"serverGo/src/gRPCHandler"
+	"time"
 )
 
 // The cache for labelImages; hold reference to the name and the path;
@@ -33,7 +37,7 @@ func HandlerPostImage(c *gin.Context) {
 
 	// If the image is never seen before:
 	if exist == false {
-		msg = "The picture does not exist in the database."
+		msg = "The picture does not exist in the database.\n"
 
 		openedFile, err := file.Open()
 		defer func(openedFile multipart.File) {
@@ -42,15 +46,24 @@ func HandlerPostImage(c *gin.Context) {
 		}(openedFile)
 		common.CheckErr(err)
 
-		err = c.SaveUploadedFile(file, common.S3ToPredict + imgName)
+		imgPath := common.S3ToPredict + imgName
+		err = c.SaveUploadedFile(file, imgPath)
+		common.CheckErr(err)
+
+		// update the database
+		dbInterface.InsertBared(imgName, imgPath)
 	} else {
 		// Else, checks the prediction and the label.
+		msg += "The picture is in the database.\n"
+
 		if prediction != nil {
 			if *prediction == true {
 				msg += "prediction true\n"
 			}else {
 				msg += "prediction false\n"
 			}
+		} else {
+			msg += "prediction unavailable\n"
 		}
 
 		if label != nil {
@@ -59,6 +72,8 @@ func HandlerPostImage(c *gin.Context) {
 			}else {
 				msg += "label false\n"
 			}
+		} else {
+			msg += "label unavailable\n"
 		}
 
 		msg += *path
@@ -75,9 +90,27 @@ func HandlerPredictedImage(c *gin.Context) {
 	// TODO
 }
 
-// HandlerOpenCV handles the request from the OpenCV server.
+// HandlerOpenCV communicates with the OpenCV server.
 func HandlerOpenCV(c *gin.Context) {
-	// TODO
+	// connects the OpenCV server through grpc
+	connectionOpenCV, err := grpc.Dial(common.GRPCOpenCVInsecurePort, grpc.WithInsecure(), grpc.WithBlock())
+	defer func(connectionOpenCV *grpc.ClientConn) {
+		err := connectionOpenCV.Close()
+		common.CheckErr(err)
+	}(connectionOpenCV)
+	common.CheckErr(err)
+	clientOpenCV := gRPCHandler.NewGRPCHandlerClient(connectionOpenCV)
+
+	// send the request
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := clientOpenCV.GRPCHandlerOpenCVCollector(ctx, &gRPCHandler.Empty{})
+	common.CheckErr(err)
+
+	// update database
+	name := r.Name
+	path := r.Path
+	dbInterface.InsertBared(name, path)
 }
 
 // HandlerShowList handles the request to show information of all the images in a list.
@@ -175,6 +208,8 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 						err := os.Rename(path, newLocation)
 						if err == nil {
 							// Also, update the database.
+							// TODO: maybe utilize the performance by using a single db connection
+							// TODO: instead of creating one each time
 							dbInterface.UpdatePathAndLabel(name, newLocation, isVehicle)
 							// Remove the name from the map.
 							delete(name2path, name)
