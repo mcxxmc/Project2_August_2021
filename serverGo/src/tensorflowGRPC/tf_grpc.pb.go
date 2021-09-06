@@ -19,9 +19,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CommunicatorClient interface {
 	// ask for new images to predict
-	RequestImages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ImageArray, error)
+	RequestImages(ctx context.Context, in *TFStandard, opts ...grpc.CallOption) (*ImageArray, error)
 	// exchange the prediction results
-	PostPredictions(ctx context.Context, in *PredictionArray, opts ...grpc.CallOption) (*Empty, error)
+	PostPredictions(ctx context.Context, in *PredictionArray, opts ...grpc.CallOption) (*TFStandard, error)
 	// make prediction for an image immediately
 	ImmediatePred(ctx context.Context, in *Image, opts ...grpc.CallOption) (*Prediction, error)
 }
@@ -34,7 +34,7 @@ func NewCommunicatorClient(cc grpc.ClientConnInterface) CommunicatorClient {
 	return &communicatorClient{cc}
 }
 
-func (c *communicatorClient) RequestImages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ImageArray, error) {
+func (c *communicatorClient) RequestImages(ctx context.Context, in *TFStandard, opts ...grpc.CallOption) (*ImageArray, error) {
 	out := new(ImageArray)
 	err := c.cc.Invoke(ctx, "/Communicator/RequestImages", in, out, opts...)
 	if err != nil {
@@ -43,8 +43,8 @@ func (c *communicatorClient) RequestImages(ctx context.Context, in *Empty, opts 
 	return out, nil
 }
 
-func (c *communicatorClient) PostPredictions(ctx context.Context, in *PredictionArray, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
+func (c *communicatorClient) PostPredictions(ctx context.Context, in *PredictionArray, opts ...grpc.CallOption) (*TFStandard, error) {
+	out := new(TFStandard)
 	err := c.cc.Invoke(ctx, "/Communicator/PostPredictions", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -66,9 +66,9 @@ func (c *communicatorClient) ImmediatePred(ctx context.Context, in *Image, opts 
 // for forward compatibility
 type CommunicatorServer interface {
 	// ask for new images to predict
-	RequestImages(context.Context, *Empty) (*ImageArray, error)
+	RequestImages(context.Context, *TFStandard) (*ImageArray, error)
 	// exchange the prediction results
-	PostPredictions(context.Context, *PredictionArray) (*Empty, error)
+	PostPredictions(context.Context, *PredictionArray) (*TFStandard, error)
 	// make prediction for an image immediately
 	ImmediatePred(context.Context, *Image) (*Prediction, error)
 	mustEmbedUnimplementedCommunicatorServer()
@@ -78,10 +78,10 @@ type CommunicatorServer interface {
 type UnimplementedCommunicatorServer struct {
 }
 
-func (UnimplementedCommunicatorServer) RequestImages(context.Context, *Empty) (*ImageArray, error) {
+func (UnimplementedCommunicatorServer) RequestImages(context.Context, *TFStandard) (*ImageArray, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestImages not implemented")
 }
-func (UnimplementedCommunicatorServer) PostPredictions(context.Context, *PredictionArray) (*Empty, error) {
+func (UnimplementedCommunicatorServer) PostPredictions(context.Context, *PredictionArray) (*TFStandard, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostPredictions not implemented")
 }
 func (UnimplementedCommunicatorServer) ImmediatePred(context.Context, *Image) (*Prediction, error) {
@@ -101,7 +101,7 @@ func RegisterCommunicatorServer(s grpc.ServiceRegistrar, srv CommunicatorServer)
 }
 
 func _Communicator_RequestImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(TFStandard)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func _Communicator_RequestImages_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/Communicator/RequestImages",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CommunicatorServer).RequestImages(ctx, req.(*Empty))
+		return srv.(CommunicatorServer).RequestImages(ctx, req.(*TFStandard))
 	}
 	return interceptor(ctx, in, info, handler)
 }

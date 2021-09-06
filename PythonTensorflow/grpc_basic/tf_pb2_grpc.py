@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import tf_pb2 as tf__pb2
+from grpc_basic import tf_pb2 as tf__pb2
 
 
 class CommunicatorStub(object):
@@ -16,13 +16,13 @@ class CommunicatorStub(object):
         """
         self.RequestImages = channel.unary_unary(
                 '/Communicator/RequestImages',
-                request_serializer=tf__pb2.Empty.SerializeToString,
+                request_serializer=tf__pb2.TFStandard.SerializeToString,
                 response_deserializer=tf__pb2.ImageArray.FromString,
                 )
         self.PostPredictions = channel.unary_unary(
                 '/Communicator/PostPredictions',
                 request_serializer=tf__pb2.PredictionArray.SerializeToString,
-                response_deserializer=tf__pb2.Empty.FromString,
+                response_deserializer=tf__pb2.TFStandard.FromString,
                 )
         self.ImmediatePred = channel.unary_unary(
                 '/Communicator/ImmediatePred',
@@ -60,13 +60,13 @@ def add_CommunicatorServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'RequestImages': grpc.unary_unary_rpc_method_handler(
                     servicer.RequestImages,
-                    request_deserializer=tf__pb2.Empty.FromString,
+                    request_deserializer=tf__pb2.TFStandard.FromString,
                     response_serializer=tf__pb2.ImageArray.SerializeToString,
             ),
             'PostPredictions': grpc.unary_unary_rpc_method_handler(
                     servicer.PostPredictions,
                     request_deserializer=tf__pb2.PredictionArray.FromString,
-                    response_serializer=tf__pb2.Empty.SerializeToString,
+                    response_serializer=tf__pb2.TFStandard.SerializeToString,
             ),
             'ImmediatePred': grpc.unary_unary_rpc_method_handler(
                     servicer.ImmediatePred,
@@ -95,7 +95,7 @@ class Communicator(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Communicator/RequestImages',
-            tf__pb2.Empty.SerializeToString,
+            tf__pb2.TFStandard.SerializeToString,
             tf__pb2.ImageArray.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -113,7 +113,7 @@ class Communicator(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Communicator/PostPredictions',
             tf__pb2.PredictionArray.SerializeToString,
-            tf__pb2.Empty.FromString,
+            tf__pb2.TFStandard.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

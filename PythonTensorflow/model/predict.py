@@ -1,11 +1,6 @@
 from keras.preprocessing import image
 import numpy as np
 import matplotlib.pyplot as plt
-from static.const import (
-    S3_TO_PREDICT, S3_PRED_VEHICLE, S3_PRED_NON_VEHICLE
-)
-import os
-import shutil
 
 
 def load_image(img_path: str, show=False):
@@ -30,6 +25,8 @@ def load_image(img_path: str, show=False):
     return img_tensor
 
 
+# UPDATE: this function no long automatically accesses S3, and it does not move the images.
+# Now it is solely for prediction.
 def make_prediction(model, imgPath: str) -> bool:
     """
     Make predictions for a given image and returns a bool.

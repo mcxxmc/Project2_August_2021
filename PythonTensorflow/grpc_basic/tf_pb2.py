@@ -19,15 +19,15 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x08tf.proto\"\x07\n\x05\x45mpty\"#\n\x05Image\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\"$\n\nImageArray\x12\x16\n\x06Images\x18\x01 \x03(\x0b\x32\x06.Image\"(\n\nPrediction\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04pred\x18\x02 \x01(\x08\"3\n\x0fPredictionArray\x12 \n\x0bPredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction2\x8d\x01\n\x0c\x43ommunicator\x12&\n\rRequestImages\x12\x06.Empty\x1a\x0b.ImageArray\"\x00\x12-\n\x0fPostPredictions\x12\x10.PredictionArray\x1a\x06.Empty\"\x00\x12&\n\rImmediatePred\x12\x06.Image\x1a\x0b.Prediction\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x08tf.proto\"\x0c\n\nTFStandard\"#\n\x05Image\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\"$\n\nImageArray\x12\x16\n\x06Images\x18\x01 \x03(\x0b\x32\x06.Image\"(\n\nPrediction\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04pred\x18\x02 \x01(\x08\"3\n\x0fPredictionArray\x12 \n\x0bPredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction2\x97\x01\n\x0c\x43ommunicator\x12+\n\rRequestImages\x12\x0b.TFStandard\x1a\x0b.ImageArray\"\x00\x12\x32\n\x0fPostPredictions\x12\x10.PredictionArray\x1a\x0b.TFStandard\"\x00\x12&\n\rImmediatePred\x12\x06.Image\x1a\x0b.Prediction\"\x00\x62\x06proto3'
 )
 
 
 
 
-_EMPTY = _descriptor.Descriptor(
-  name='Empty',
-  full_name='Empty',
+_TFSTANDARD = _descriptor.Descriptor(
+  name='TFStandard',
+  full_name='TFStandard',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
@@ -46,7 +46,7 @@ _EMPTY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=12,
-  serialized_end=19,
+  serialized_end=24,
 )
 
 
@@ -84,8 +84,8 @@ _IMAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21,
-  serialized_end=56,
+  serialized_start=26,
+  serialized_end=61,
 )
 
 
@@ -116,8 +116,8 @@ _IMAGEARRAY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=58,
-  serialized_end=94,
+  serialized_start=63,
+  serialized_end=99,
 )
 
 
@@ -155,8 +155,8 @@ _PREDICTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=96,
-  serialized_end=136,
+  serialized_start=101,
+  serialized_end=141,
 )
 
 
@@ -187,25 +187,25 @@ _PREDICTIONARRAY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=138,
-  serialized_end=189,
+  serialized_start=143,
+  serialized_end=194,
 )
 
 _IMAGEARRAY.fields_by_name['Images'].message_type = _IMAGE
 _PREDICTIONARRAY.fields_by_name['Predictions'].message_type = _PREDICTION
-DESCRIPTOR.message_types_by_name['Empty'] = _EMPTY
+DESCRIPTOR.message_types_by_name['TFStandard'] = _TFSTANDARD
 DESCRIPTOR.message_types_by_name['Image'] = _IMAGE
 DESCRIPTOR.message_types_by_name['ImageArray'] = _IMAGEARRAY
 DESCRIPTOR.message_types_by_name['Prediction'] = _PREDICTION
 DESCRIPTOR.message_types_by_name['PredictionArray'] = _PREDICTIONARRAY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), {
-  'DESCRIPTOR' : _EMPTY,
+TFStandard = _reflection.GeneratedProtocolMessageType('TFStandard', (_message.Message,), {
+  'DESCRIPTOR' : _TFSTANDARD,
   '__module__' : 'tf_pb2'
-  # @@protoc_insertion_point(class_scope:Empty)
+  # @@protoc_insertion_point(class_scope:TFStandard)
   })
-_sym_db.RegisterMessage(Empty)
+_sym_db.RegisterMessage(TFStandard)
 
 Image = _reflection.GeneratedProtocolMessageType('Image', (_message.Message,), {
   'DESCRIPTOR' : _IMAGE,
@@ -244,15 +244,15 @@ _COMMUNICATOR = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=192,
-  serialized_end=333,
+  serialized_start=197,
+  serialized_end=348,
   methods=[
   _descriptor.MethodDescriptor(
     name='RequestImages',
     full_name='Communicator.RequestImages',
     index=0,
     containing_service=None,
-    input_type=_EMPTY,
+    input_type=_TFSTANDARD,
     output_type=_IMAGEARRAY,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -263,7 +263,7 @@ _COMMUNICATOR = _descriptor.ServiceDescriptor(
     index=1,
     containing_service=None,
     input_type=_PREDICTIONARRAY,
-    output_type=_EMPTY,
+    output_type=_TFSTANDARD,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),

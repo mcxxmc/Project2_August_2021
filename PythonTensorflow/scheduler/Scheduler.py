@@ -44,15 +44,15 @@ class Scheduler(threading.Thread):
                 print("Job starts.")
 
                 # Get all the images to predict
-                response: tf_pb2.ImageArray = self.stub.RequestImages()
+                response: tf_pb2.ImageArray = self.stub.RequestImages(tf_pb2.TFStandard())
                 namesPaths = {image.name: image.path for image in response.Images}
                 r = []
-                for name, path in namesPaths:
+                for name, path in namesPaths.items():
                     b = make_prediction(self.model, path)
                     r.append(tf_pb2.Prediction(name=name, pred=b))
 
                 # send the predictions
-                response: tf_pb2.Empty = self.stub.PostPredictions(Predictions=r)
+                response: tf_pb2.TFStandard = self.stub.PostPredictions(tf_pb2.PredictionArray(Predictions=r))
 
                 print("Job finishes. Timer resets.")
                 self.t0 = time.time()

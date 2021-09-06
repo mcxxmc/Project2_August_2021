@@ -6,10 +6,10 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"os"
 	"serverGo/src/common"
 	"serverGo/src/dbInterface"
 	"serverGo/src/tensorflowGRPC"
-	"strconv"
 )
 
 type tfServer struct {
@@ -18,7 +18,8 @@ type tfServer struct {
 
 var mapNamesPaths = make(map[string]string)  // the dictionary storing old name-path pairs
 
-func (s *tfServer) RequestImages(ctx context.Context, in *tensorflowGRPC.Empty) (*tensorflowGRPC.ImageArray, error) {
+func (s *tfServer) RequestImages(ctx context.Context, in *tensorflowGRPC.TFStandard) (*tensorflowGRPC.ImageArray, error) {
+	fmt.Println("RequestImages: invoked.")
 	records := dbInterface.FetchUnpredictedUnlabeled()
 	var r tensorflowGRPC.ImageArray
 	var tmp []*tensorflowGRPC.Image
@@ -35,7 +36,8 @@ func (s *tfServer) RequestImages(ctx context.Context, in *tensorflowGRPC.Empty) 
 	return &r, nil
 }
 
-func (s *tfServer) PostPredictions(ctx context.Context, in *tensorflowGRPC.PredictionArray) (*tensorflowGRPC.Empty, error) {
+func (s *tfServer) PostPredictions(ctx context.Context, in *tensorflowGRPC.PredictionArray) (*tensorflowGRPC.TFStandard, error) {
+	fmt.Println("PostPredictions: invoked.")
 	predictions := in.Predictions
 	var name string
 	var b bool
@@ -56,8 +58,7 @@ func (s *tfServer) PostPredictions(ctx context.Context, in *tensorflowGRPC.Predi
 				fmt.Println("PostPredictions: Unexpected value b.")
 				break
 			}
-			fmt.Println("Name: " + name + ", old path: " + oldPath + ", path: " + path + ", pred: " + strconv.FormatBool(b))
-			/*
+			// fmt.Println("Name: " + name + ", old path: " + oldPath + ", path: " + path + ", pred: " + strconv.FormatBool(b))
 			// move the image
 			err := os.Rename(oldPath, path)
 			if err == nil {
@@ -68,12 +69,11 @@ func (s *tfServer) PostPredictions(ctx context.Context, in *tensorflowGRPC.Predi
 			} else {
 				fmt.Println(err)
 			}
-			 */
 		} else {
 			fmt.Println("PostPredictions: " + name + " does not exist in map.")
 		}
 	}
-	var r tensorflowGRPC.Empty
+	var r tensorflowGRPC.TFStandard
 	return &r, nil
 }
 

@@ -4,16 +4,16 @@ option go_package = "./tensorflowGRPC";
 
 service Communicator {
   // ask for new images to predict
-  rpc RequestImages (Empty) returns (ImageArray) {}
+  rpc RequestImages (TFStandard) returns (ImageArray) {}
 
   // exchange the prediction results
-  rpc PostPredictions (PredictionArray) returns (Empty) {}
+  rpc PostPredictions (PredictionArray) returns (TFStandard) {}
 
   // make prediction for an image immediately
   rpc ImmediatePred (Image) returns (Prediction) {}
 }
 
-message Empty {}
+message TFStandard {}
 
 message Image {
   string name=1;

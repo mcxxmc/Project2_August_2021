@@ -43,6 +43,6 @@ func main()  {
 	router.POST("/labelPictures/", ginHandler.HandlerLabelPicturesPOST)
 
 	// Run at port 8080.
-	err := router.Run(":8080")
+	err := router.Run(common.GINPORT)
 	common.CheckErr(err)
 }

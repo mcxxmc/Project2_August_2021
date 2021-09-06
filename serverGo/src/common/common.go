@@ -27,6 +27,8 @@ var GRPCGoPort = ":50050"
 var GRPCOpenCVInsecurePort = "localhost:50051"
 var GRPCTensorflowPort = "localhost:50052"
 
+var GINPORT = ":8080"
+
 // CheckErr checks the error and prints it out if not nil
 func CheckErr(err error) {
 	if err != nil {
