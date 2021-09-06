@@ -1,6 +1,12 @@
 import time
+
+import grpc
+from grpc_basic import tf_pb2_grpc, tf_pb2
+
 from model.predict import make_prediction
 import threading
+
+from static.const import GRPC_GOLANG_INSECURE_PORT
 
 
 class Scheduler(threading.Thread):
@@ -21,6 +27,9 @@ class Scheduler(threading.Thread):
         self.timeInterval = timeInterval
         self.t0 = None
 
+        self.channel = grpc.insecure_channel(GRPC_GOLANG_INSECURE_PORT)
+        self.stub = tf_pb2_grpc.CommunicatorStub(self.channel)
+
     def run(self) -> None:
         """
         Launch the scheduler.
@@ -33,6 +42,17 @@ class Scheduler(threading.Thread):
         while True:
             if int(time.time() - self.t0) == self.timeInterval:
                 print("Job starts.")
-                make_prediction(self.model)
+
+                # Get all the images to predict
+                response: tf_pb2.ImageArray = self.stub.RequestImages()
+                namesPaths = {image.name: image.path for image in response.Images}
+                r = []
+                for name, path in namesPaths:
+                    b = make_prediction(self.model, path)
+                    r.append(tf_pb2.Prediction(name=name, pred=b))
+
+                # send the predictions
+                response: tf_pb2.Empty = self.stub.PostPredictions(Predictions=r)
+
                 print("Job finishes. Timer resets.")
                 self.t0 = time.time()

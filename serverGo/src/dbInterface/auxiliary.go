@@ -30,6 +30,11 @@ type UnlabeledRecord struct {
 	Path string
 }
 
+type UnpredictedUnlabeledRecord struct {
+	Name string
+	Path string
+}
+
 // Generate text in a special form. Used by "ShowPictures".
 func generateText(id int, name string, prediction *bool, label *bool) string {
 	r := "Id: " + strconv.Itoa(id) + ", name: " + name + ", prediction: "

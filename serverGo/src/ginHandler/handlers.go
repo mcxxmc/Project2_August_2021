@@ -10,15 +10,15 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"serverGo/src/OpenCVGRPC"
 	"serverGo/src/common"
 	"serverGo/src/dbInterface"
+	"serverGo/src/openCVGRPC"
 	"time"
 )
 
 // The cache for labelImages; hold reference to the name and the path;
 // will be useful when there are multiple labelers.
-var name2path = make(map[string]string)
+var mapNamesPaths = make(map[string]string)
 
 // HandlerPostImage handles the uploaded image from the frontend.
 func HandlerPostImage(c *gin.Context) {
@@ -101,18 +101,17 @@ func HandlerOpenCV(c *gin.Context) {
 		common.CheckErr(err)
 	}(connectionOpenCV)
 	common.CheckErr(err)
-	clientOpenCV := OpenCVGRPC.NewCollectorClient(connectionOpenCV)
+	clientOpenCV := openCVGRPC.NewCollectorClient(connectionOpenCV)
 
 	// send the request
 	// The timeout should be long enough; otherwise there will be errors
 	// TODO: maybe remove timeout
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
 	defer cancel()
-	r, err := clientOpenCV.CollectImage(ctx, &OpenCVGRPC.Empty{})
+	r, err := clientOpenCV.CollectImage(ctx, &openCVGRPC.Empty{})
 	common.CheckErr(err)
 
 	// update database
-	fmt.Println()
 	name := r.Name
 	path := r.Path
 	dbInterface.InsertBared(name, path)
@@ -171,7 +170,7 @@ func HandlerLabelPicturesGET(c *gin.Context){
 				ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: name})
 
 			// Caches the name-path pair.
-			name2path[name] = path
+			mapNamesPaths[name] = path
 		}else {
 			fmt.Println(err)
 		}
@@ -196,7 +195,7 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 			for i := 0; i < len(results); i ++ {
 				result := results[i]
 				name := result.Name
-				path, exist := name2path[name]
+				path, exist := mapNamesPaths[name]
 				// Ignore if there is no such name; maybe the record has been updated by another user.
 				// Else, move the pictures to the correct folder.
 				// Be careful if the val is empty.
@@ -220,7 +219,7 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 							// TODO: instead of creating one each time
 							dbInterface.UpdatePathAndLabel(name, newLocation, isVehicle)
 							// Remove the name from the map.
-							delete(name2path, name)
+							delete(mapNamesPaths, name)
 						}else {
 							fmt.Println(err)
 						}

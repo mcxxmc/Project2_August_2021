@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rcollect.proto\"\x07\n\x05\x45mpty\"\'\n\tImageInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t21\n\tCollector\x12$\n\x0c\x63ollectImage\x12\x06.Empty\x1a\n.ImageInfo\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\rcollect.proto\"\x07\n\x05\x45mpty\"\'\n\tImageInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t21\n\tCollector\x12$\n\x0c\x43ollectImage\x12\x06.Empty\x1a\n.ImageInfo\"\x00\x62\x06proto3'
 )
 
 
@@ -119,8 +119,8 @@ _COLLECTOR = _descriptor.ServiceDescriptor(
   serialized_end=116,
   methods=[
   _descriptor.MethodDescriptor(
-    name='collectImage',
-    full_name='Collector.collectImage',
+    name='CollectImage',
+    full_name='Collector.CollectImage',
     index=0,
     containing_service=None,
     input_type=_EMPTY,

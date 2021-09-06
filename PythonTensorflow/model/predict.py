@@ -30,31 +30,17 @@ def load_image(img_path: str, show=False):
     return img_tensor
 
 
-def make_prediction(model, folder_path: str = S3_TO_PREDICT, vehicle_path: str = S3_PRED_VEHICLE,
-                    non_vehicle_path: str = S3_PRED_NON_VEHICLE):
+def make_prediction(model, imgPath: str) -> bool:
     """
-    Make predictions for images in the S3 toPredict folder, and then move them to the predicted folder accordingly.
+    Make predictions for a given image and returns a bool.
     :param model: the keras model.
-    :param folder_path: str.
-        The path of the S3 toPredict folder.
-    :param vehicle_path: str.
-        The path of the S3 Predicted vehicle folder.
-    :param non_vehicle_path: str.
-        The path of the S3 Predicted non-vehicle folder.
-    :return: .
+    :param imgPath: str.
+        The path of the image to predict.
+    :return: bool.
     """
-    img_names = os.listdir(folder_path)
-
-    for img in img_names:
-        img_path = folder_path + img
-        print(img_path)
-        img_tensor = load_image(img_path)
-        pred = model.predict(img_tensor)[0][0]
-        if pred >= 0.5:
-            print("is a car")
-            shutil.move(img_path, vehicle_path + img)
-        else:
-            print("is not a car")
-            shutil.move(img_path, non_vehicle_path + img)
-
-    # TODO: make a JSON (imgName: prediction, path) response to the Go server.
+    img_tensor = load_image(imgPath)
+    pred = model.predict(img_tensor)[0][0]
+    if pred >= 0.5:
+        return True
+    else:
+        return False

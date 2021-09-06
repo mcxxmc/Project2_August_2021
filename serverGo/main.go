@@ -5,12 +5,16 @@ import (
 	"serverGo/src/common"
 	"serverGo/src/dbInterface"
 	"serverGo/src/ginHandler"
+	"serverGo/src/serverTensorflowGRPC"
 )
 
 
 func main()  {
 	// Test the connection to the database. Create the table if none is available.
 	dbInterface.TryConnection()
+
+	// start the golang server to communicate with the tensorflow server
+	go serverTensorflowGRPC.StartServer()
 
 	// Set up the router.
 	router := gin.Default()

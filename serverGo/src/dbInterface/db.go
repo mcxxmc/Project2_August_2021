@@ -22,23 +22,24 @@ var sqlCreateTable = "CREATE TABLE picture" + "(" +
 	"label BOOLEAN," +
 	"PRIMARY KEY(id)," +
 	"UNIQUE (name)" + ");"
-var sqlInsert = "INSERT INTO picture(name, path, prediction, label) values(?,?,?,?)"
-var sqlInsertWithPrediction = "INSERT INTO picture(name, path, prediction) values(?,?,?)"
-var sqlInsertWithLabel = "INSERT INTO picture(name, path, label) values(?,?,?)"
-var sqlInsertBared = "INSERT INTO picture(name, path) values(?,?)"
-var sqlUpdatePrediction = "UPDATE picture SET prediction=? WHERE name=?"
-var sqlUpdateLabel = "UPDATE picture SET label=? WHERE name=?"
-var sqlUpdatePathAndLabel = "UPDATE picture SET path=?, label=? WHERE name=?"
+var sqlInsert = "INSERT INTO picture(name, path, prediction, label) values(?,?,?,?);"
+var sqlInsertWithPrediction = "INSERT INTO picture(name, path, prediction) values(?,?,?);"
+var sqlInsertWithLabel = "INSERT INTO picture(name, path, label) values(?,?,?);"
+var sqlInsertBared = "INSERT INTO picture(name, path) values(?,?);"
+var sqlUpdatePrediction = "UPDATE picture SET prediction=? WHERE name=?;"
+var sqlUpdatePathAndPrediction = "UPDATE picture SET path=?, prediction=? WHERE name=?"
+var sqlUpdateLabel = "UPDATE picture SET label=? WHERE name=?;"
+var sqlUpdatePathAndLabel = "UPDATE picture SET path=?, label=? WHERE name=?;"
 var sqlQueryTry = "SELECT name FROM picture WHERE id=1;"
 var sqlQueryName = "SELECT path, prediction, label FROM picture WHERE name=?;"
-var sqlFetchAll = "SELECT id, name, path, prediction, label FROM picture"
+var sqlFetchAll = "SELECT id, name, path, prediction, label FROM picture;"
 var sqlLimit = " LIMIT "
 var comma = ","
-var sqlFetchUnlabeled = "SELECT name, path FROM picture where label IS NULL"
+var sqlFetchUnlabeled = "SELECT name, path FROM picture WHERE label IS NULL"
+var sqlFetchUnpredictedUnlabeled = "SELECT name, path FROM picture WHERE prediction IS NULL AND label IS NULL;"
 
-
-// Opens a connection to the database.
-func openDb() *sql.DB {
+// OpenDb opens a connection to the database.
+func OpenDb() *sql.DB {
 	// connect to a MySQL server as a user named "localuser" to a database named august2021
 	db, err := sql.Open("mysql", "localuser:localuserpassword@tcp(localhost:3306)/august2021")
 	common.CheckErr(err)
@@ -46,8 +47,8 @@ func openDb() *sql.DB {
 	return db
 }
 
-// Closes the connection.
-func closeDb(db *sql.DB) {
+// CloseDb closes the connection.
+func CloseDb(db *sql.DB) {
 	err := db.Close()
 	common.CheckErr(err)
 	fmt.Println("Db connection closes.")
@@ -74,8 +75,9 @@ func RecreateTable(db *sql.DB) {
 
 // TryConnection tries the connection to the database and checks if it functions properly.
 func TryConnection() {
-	db := openDb()
-	defer closeDb(db)
+	// TODO: change the query to insert then delete template.PNG; there should not be any fake data
+	db := OpenDb()
+	defer CloseDb(db)
 	// Open doesn't open a connection. Check if the connection is valid and stop the program if it is not.
 	err := db.Ping()
 	common.PanicErr(err)
@@ -91,8 +93,8 @@ func TryConnection() {
 
 // Insert inserts a new record into the database.
 func Insert(name string, path string, prediction bool, label bool) {
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 	_, err := db.Exec(sqlInsert, name, path, prediction, label)
 	common.CheckErr(err)
 
@@ -103,63 +105,62 @@ func Insert(name string, path string, prediction bool, label bool) {
 
 // InsertWithPrediction inserts a new record into the database.
 func InsertWithPrediction(name string, path string, prediction bool) {
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 	_, err := db.Exec(sqlInsertWithPrediction, name, path, prediction)
 	common.CheckErr(err)
 }
 
 // InsertWithLabel inserts a new record into the database.
 func InsertWithLabel(name string, path string, label bool) {
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 	_, err := db.Exec(sqlInsertWithLabel, name, path, label)
 	common.CheckErr(err)
 }
 
 // InsertBared inserts a new record with name and path into the database.
 func InsertBared(name string, path string) {
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 	_, err := db.Exec(sqlInsertBared, name, path)
 	common.CheckErr(err)
 }
 
 // UpdatePrediction updates the prediction attribute.
 func UpdatePrediction(name string, prediction bool) {
-	db := openDb()
-	defer closeDb(db)
-
-	res, err := db.Exec(sqlUpdatePrediction, prediction, name)
+	db := OpenDb()
+	defer CloseDb(db)
+	_, err := db.Exec(sqlUpdatePrediction, prediction, name)
 	common.CheckErr(err)
 
-	n, err := res.RowsAffected()
+	// n, err := res.RowsAffected()
+	// common.CheckErr(err)
+	// fmt.Printf("Updates Succeeds. Affected rows: %d\n", n)
+}
+
+// UpdatePathAndPrediction updates the path and the prediction.
+func UpdatePathAndPrediction(name string, path string, prediction bool) {
+	db := OpenDb()
+	defer CloseDb(db)
+	_, err := db.Exec(sqlUpdatePathAndPrediction, path, prediction, name)
 	common.CheckErr(err)
-	fmt.Printf("Updates Succeeds. Affected rows: %d\n", n)
 }
 
 // UpdateLabel updates the prediction attribute.
 func UpdateLabel(name string, label bool) {
-	db := openDb()
-	defer closeDb(db)
-
-	res, err := db.Exec(sqlUpdateLabel, label, name)
+	db := OpenDb()
+	defer CloseDb(db)
+	_, err := db.Exec(sqlUpdateLabel, label, name)
 	common.CheckErr(err)
-
-	n, err := res.RowsAffected()
-	common.CheckErr(err)
-	fmt.Printf("Updates Succeeds. Affected rows: %d\n", n)
 }
 
 // UpdatePathAndLabel updates the path and the label.
 func UpdatePathAndLabel(name string, path string, label bool) {
-	db := openDb()
-	defer closeDb(db)
-	res, err := db.Exec(sqlUpdatePathAndLabel, path, label, name)
+	db := OpenDb()
+	defer CloseDb(db)
+	_, err := db.Exec(sqlUpdatePathAndLabel, path, label, name)
 	common.CheckErr(err)
-	n, err := res.RowsAffected()
-	common.CheckErr(err)
-	fmt.Printf("Updates Succeeds. Affected rows: %d\n\n", n)
 }
 
 // QueryName checks if the name is in the database.
@@ -169,8 +170,8 @@ func UpdatePathAndLabel(name string, path string, label bool) {
 // The last element in the tuple is a string, which is  the path attribute of the record,
 // and it will be nil if the record does not exist.
 func QueryName(name string) (bool, *bool, *bool, *string) {
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 	res, err := db.Query(sqlQueryName, name)
 
 	defer func(res *sql.Rows) {
@@ -194,8 +195,8 @@ func QueryName(name string) (bool, *bool, *bool, *string) {
 
 // FetchAll fetches all the records and returns id, name, path, prediction and label.
 func FetchAll() Records {
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 
 	res, err := db.Query(sqlFetchAll)
 
@@ -236,8 +237,8 @@ func FetchN(offset int, n int) []PathAndDesc {
 	var prediction *bool
 	var label *bool
 	command := sqlFetchAll + sqlLimit + strconv.Itoa(offset) + comma + strconv.Itoa(n)
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 	res, err := db.Query(command)
 	defer func(res *sql.Rows) {
 		err := res.Close()
@@ -261,8 +262,8 @@ func FetchUnlabeled() []UnlabeledRecord {
 	var r []UnlabeledRecord
 	var name string
 	var path string
-	db := openDb()
-	defer closeDb(db)
+	db := OpenDb()
+	defer CloseDb(db)
 	res, err := db.Query(sqlFetchUnlabeled)
 	defer func(res *sql.Rows) {
 		err := res.Close()
@@ -274,6 +275,31 @@ func FetchUnlabeled() []UnlabeledRecord {
 			err := res.Scan(&name, &path)
 			common.CheckErr(err)
 			r = append(r, UnlabeledRecord{Name: name, Path: path})
+		}else {
+			break
+		}
+	}
+	return r
+}
+
+// FetchUnpredictedUnlabeled fetches all the records that are neither predicted nor labeled.
+func FetchUnpredictedUnlabeled() []UnpredictedUnlabeledRecord {
+	var r []UnpredictedUnlabeledRecord
+	var name string
+	var path string
+	db := OpenDb()
+	defer CloseDb(db)
+	res, err := db.Query(sqlFetchUnpredictedUnlabeled)
+	defer func(res *sql.Rows) {
+		err := res.Close()
+		common.CheckErr(err)
+	}(res)
+	common.CheckErr(err)
+	for {
+		if res.Next() {
+			err := res.Scan(&name, &path)
+			common.CheckErr(err)
+			r = append(r, UnpredictedUnlabeledRecord{Name: name, Path: path})
 		}else {
 			break
 		}

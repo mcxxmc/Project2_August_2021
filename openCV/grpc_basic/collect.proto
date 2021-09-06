@@ -4,7 +4,7 @@ syntax="proto3";
 service Collector {
   // Receive the request to collect a new image using the camera;
   // store the image in S3 and return the information of that image.
-  rpc collectImage (Empty) returns (ImageInfo) {}
+  rpc CollectImage (Empty) returns (ImageInfo) {}
 }
 
 // Empty message.

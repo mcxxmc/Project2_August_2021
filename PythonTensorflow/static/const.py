@@ -24,4 +24,8 @@ NUM_CLASSES = len(DATA_LIST)
 BATCH_SIZE = 40  # try reducing batch size or freeze more layers if your GPU runs out of memory
 NUM_EPOCHS = 10
 
+WEIGHTS_PATH = './weights/weight_2.h5'
 WEIGHTS_SAVE_PATH = "./weights/weight_3.h5"
+
+GRPC_INSECURE_PORT = "[::]:50052"
+GRPC_GOLANG_INSECURE_PORT = "localhost:50050"
