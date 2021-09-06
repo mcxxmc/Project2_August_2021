@@ -38,6 +38,6 @@ def make_prediction(model, imgPath: str) -> bool:
     img_tensor = load_image(imgPath)
     pred = model.predict(img_tensor)[0][0]
     if pred >= 0.5:
-        return True
+        return True  # vehicle
     else:
-        return False
+        return False  # non-vehicle

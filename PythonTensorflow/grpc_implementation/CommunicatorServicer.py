@@ -6,9 +6,13 @@ from static.const import WEIGHTS_PATH
 
 class CommunicatorServicer(tf_pb2_grpc.CommunicatorServicer):
     """
-    The python server of Tensorflow model.
+    The python gRPC Tensorflow server.
     """
+
     def __init__(self):
+        """
+        Constructor.
+        """
         self.model = create_model()
         self.model.load_weights(WEIGHTS_PATH)
         compile_model(self.model)

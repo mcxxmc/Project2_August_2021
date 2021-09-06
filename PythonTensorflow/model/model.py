@@ -27,7 +27,7 @@ def create_model():
     model = tf.keras.Sequential([conv_1, conv_2, maxPool1, conv_3, conv_4, maxPool2, flatten_1, dense_1, dropout_1,
                                  dense_2, dropout_2, dense_3])
     model.build(input_shape=(None, 64, 64, 3))
-    model.summary()
+    # model.summary()
     return model
 
 

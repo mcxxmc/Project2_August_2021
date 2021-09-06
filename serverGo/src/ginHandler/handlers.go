@@ -13,6 +13,7 @@ import (
 	"serverGo/src/common"
 	"serverGo/src/dbInterface"
 	"serverGo/src/openCVGRPC"
+	"serverGo/src/tensorflowGRPC"
 	"time"
 )
 
@@ -29,11 +30,16 @@ func HandlerPostImage(c *gin.Context) {
 	file, err := c.FormFile(common.FormFileName)
 	common.CheckErr(err)
 
+	if file == nil {
+		c.JSON(http.StatusOK, gin.H{"r": "Please submit an image that is not empty."})
+		return
+	}
+
 	// Checks if the image exists in our database.
 	imgName := file.Filename
 	exist, prediction, label, path := dbInterface.QueryName(imgName)
 
-	msg := ""
+	var msg string
 
 	// If the image is never seen before:
 	if exist == false {
@@ -54,40 +60,81 @@ func HandlerPostImage(c *gin.Context) {
 		dbInterface.InsertBared(imgName, imgPath)
 	} else {
 		// Else, checks the prediction and the label.
-		msg += "The picture is in the database.\n"
-
-		if prediction != nil {
-			if *prediction == true {
-				msg += "prediction true\n"
-			}else {
-				msg += "prediction false\n"
-			}
-		} else {
-			msg += "prediction unavailable\n"
-		}
-
-		if label != nil {
-			if *label == true {
-				msg += "label true\n"
-			}else {
-				msg += "label false\n"
-			}
-		} else {
-			msg += "label unavailable\n"
-		}
-
-		msg += *path
+		msg = completeMsgIfNameExist(prediction, label, path)
 	}
 
 	// Make a response as a JSON object.
-	c.JSON(http.StatusOK, gin.H{
-		"r": msg,
-	})
+	c.JSON(http.StatusOK, gin.H{"r": msg})
 }
 
-// HandlerPredictedImage handles the request from the tensorflow server.
-func HandlerPredictedImage(c *gin.Context) {
-	// TODO
+// HandlerImmediatePred immediately predicts an image.
+func HandlerImmediatePred(c *gin.Context) {
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Get the file from the form using the key.
+	file, err := c.FormFile(common.FormFileNameImmediatePred)
+	common.CheckErr(err)
+
+	if file == nil {
+		c.JSON(http.StatusOK, gin.H{"r": "Please submit an image that is not empty."})
+		return
+	}
+
+	// Checks if the image exists in our database.
+	imgName := file.Filename
+	exist, prediction, label, path := dbInterface.QueryName(imgName)
+
+	var msg string
+
+	// If the image is never seen before:
+	if exist == false {
+		openedFile, err := file.Open()
+		defer func(openedFile multipart.File) {
+			err := openedFile.Close()
+			common.CheckErr(err)
+		}(openedFile)
+		common.CheckErr(err)
+
+		imgPath := common.S3ToPredict + imgName
+		err = c.SaveUploadedFile(file, imgPath)
+		common.CheckErr(err)
+
+		// update the database
+		dbInterface.InsertBared(imgName, imgPath)
+
+		connectionTf, err := grpc.Dial(common.GRPCTensorflowPort, grpc.WithInsecure(), grpc.WithBlock())
+		defer func(connectionTf *grpc.ClientConn) {
+			err := connectionTf.Close()
+			common.CheckErr(err)
+		}(connectionTf)
+		common.CheckErr(err)
+		clientTf := tensorflowGRPC.NewCommunicatorClient(connectionTf)
+
+		// send the request
+		// TODO: maybe remove timeout
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
+		defer cancel()
+		r, err := clientTf.ImmediatePred(ctx, &tensorflowGRPC.Image{Name: imgName, Path: imgPath})
+
+		tfPred := r.Pred
+		msg = completeMsgTensorflowResponse(tfPred)
+		newPath, err := getPathPredicted(imgName, tfPred)
+		if err == nil {
+			err := os.Rename(imgPath, newPath)
+			if err == nil {
+				dbInterface.UpdatePathAndPrediction(imgName, newPath, tfPred)
+			} else {
+				fmt.Println(err)
+			}
+		} else {
+			fmt.Println(err)
+		}
+	} else {
+		msg = completeMsgIfNameExist(prediction, label, path)
+	}
+
+	// Make a response as a JSON object.
+	c.JSON(http.StatusOK, gin.H{"r": msg})
 }
 
 // HandlerOpenCV communicates with the OpenCV server.

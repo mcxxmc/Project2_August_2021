@@ -23,9 +23,8 @@ func main()  {
 	// if the image has never been seen before.
 	router.POST("/imgSystem/", ginHandler.HandlerPostImage)
 
-	// For interaction with the tensorflow server. Receive predictions and encode them into the database.
-	// TODO
-	router.POST("/fromTensorflow/", ginHandler.HandlerPredictedImage)
+	// For interaction with the tensorflow server. Immediately predicts an image.
+	router.POST("/fromTensorflow/", ginHandler.HandlerImmediatePred)
 
 	// For "OpenCV". When a user visits this link remotely, the camera will be used.
 	// TODO: safety / authorization

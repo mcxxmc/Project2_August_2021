@@ -1,3 +1,4 @@
+import logging
 import time
 
 import grpc
@@ -32,7 +33,7 @@ class Scheduler(threading.Thread):
 
     def run(self) -> None:
         """
-        Launch the scheduler.
+        Launch the scheduler. Make gRPC requests as a client every 30 seconds.
         :return: None.
         """
         print("Scheduler launches.")
@@ -43,16 +44,20 @@ class Scheduler(threading.Thread):
             if int(time.time() - self.t0) == self.timeInterval:
                 print("Job starts.")
 
+                # gRPC client
                 # Get all the images to predict
-                response: tf_pb2.ImageArray = self.stub.RequestImages(tf_pb2.TFStandard())
-                namesPaths = {image.name: image.path for image in response.Images}
-                r = []
-                for name, path in namesPaths.items():
-                    b = make_prediction(self.model, path)
-                    r.append(tf_pb2.Prediction(name=name, pred=b))
+                try:
+                    response: tf_pb2.ImageArray = self.stub.RequestImages(tf_pb2.TFStandard())
+                    namesPaths = {image.name: image.path for image in response.Images}
+                    r = []
+                    for name, path in namesPaths.items():
+                        b = make_prediction(self.model, path)
+                        r.append(tf_pb2.Prediction(name=name, pred=b))
 
-                # send the predictions
-                response: tf_pb2.TFStandard = self.stub.PostPredictions(tf_pb2.PredictionArray(Predictions=r))
+                    # send the predictions
+                    response: tf_pb2.TFStandard = self.stub.PostPredictions(tf_pb2.PredictionArray(Predictions=r))
+                except Exception as e:
+                    logging.error(e)
 
                 print("Job finishes. Timer resets.")
                 self.t0 = time.time()

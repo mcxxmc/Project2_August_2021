@@ -5,6 +5,9 @@ import "fmt"
 // FormFileName The name of the form data in the form
 var FormFileName = "img"
 
+// FormFileNameImmediatePred The name of the form data in the form for immediate prediction.
+var FormFileNameImmediatePred = "img_fast"
+
 // S3ToPredict The path where the images waiting to be predicted are cached
 var S3ToPredict = "D:/Project2_August_2021/s3/toPredict/"
 
