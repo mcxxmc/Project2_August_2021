@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"serverGo/src/common"
@@ -27,8 +26,7 @@ func HandlerPostImage(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Get the file from the form using the key.
-	file, err := c.FormFile(common.FormFileName)
-	common.CheckErr(err)
+	file, _ := c.FormFile(common.FormFileName)
 
 	if file == nil {
 		c.JSON(http.StatusOK, gin.H{"r": "Please submit an image that is not empty."})
@@ -46,15 +44,12 @@ func HandlerPostImage(c *gin.Context) {
 		msg = "The picture does not exist in the database.\n"
 
 		openedFile, err := file.Open()
-		defer func(openedFile multipart.File) {
-			err := openedFile.Close()
-			common.CheckErr(err)
-		}(openedFile)
-		common.CheckErr(err)
+		defer closeOpenedFile(openedFile)
+		common.PanicErr(err)
 
 		imgPath := common.S3ToPredict + imgName
 		err = c.SaveUploadedFile(file, imgPath)
-		common.CheckErr(err)
+		common.PanicErr(err)
 
 		// update the database
 		dbInterface.InsertBared(imgName, imgPath)
@@ -71,43 +66,28 @@ func HandlerPostImage(c *gin.Context) {
 func HandlerImmediatePred(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 
-	// Get the file from the form using the key.
-	file, err := c.FormFile(common.FormFileNameImmediatePred)
-	common.CheckErr(err)
-
+	// same codes in HandlerPostImage
+	file, _ := c.FormFile(common.FormFileNameImmediatePred)
 	if file == nil {
 		c.JSON(http.StatusOK, gin.H{"r": "Please submit an image that is not empty."})
 		return
 	}
-
-	// Checks if the image exists in our database.
 	imgName := file.Filename
 	exist, prediction, label, path := dbInterface.QueryName(imgName)
-
 	var msg string
-
-	// If the image is never seen before:
 	if exist == false {
 		openedFile, err := file.Open()
-		defer func(openedFile multipart.File) {
-			err := openedFile.Close()
-			common.CheckErr(err)
-		}(openedFile)
-		common.CheckErr(err)
-
+		defer closeOpenedFile(openedFile)
+		common.PanicErr(err)
 		imgPath := common.S3ToPredict + imgName
 		err = c.SaveUploadedFile(file, imgPath)
-		common.CheckErr(err)
-
-		// update the database
+		common.PanicErr(err)
 		dbInterface.InsertBared(imgName, imgPath)
 
+		// gRPC client
 		connectionTf, err := grpc.Dial(common.GRPCTensorflowPort, grpc.WithInsecure(), grpc.WithBlock())
-		defer func(connectionTf *grpc.ClientConn) {
-			err := connectionTf.Close()
-			common.CheckErr(err)
-		}(connectionTf)
-		common.CheckErr(err)
+		defer closeGRPCConnection(connectionTf)
+		common.PanicErr(err)
 		clientTf := tensorflowGRPC.NewCommunicatorClient(connectionTf)
 
 		// send the request
@@ -115,14 +95,15 @@ func HandlerImmediatePred(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
 		defer cancel()
 		r, err := clientTf.ImmediatePred(ctx, &tensorflowGRPC.Image{Name: imgName, Path: imgPath})
+		common.PanicErr(err)
 
-		tfPred := r.Pred
-		msg = completeMsgTensorflowResponse(tfPred)
-		newPath, err := getPathPredicted(imgName, tfPred)
+		predTf := r.Pred
+		msg = completeMsgTensorflowResponse(predTf)
+		newPath, err := getPathPredicted(imgName, predTf)
 		if err == nil {
 			err := os.Rename(imgPath, newPath)
 			if err == nil {
-				dbInterface.UpdatePathAndPrediction(imgName, newPath, tfPred)
+				dbInterface.UpdatePathAndPrediction(imgName, newPath, predTf)
 			} else {
 				fmt.Println(err)
 			}
@@ -132,8 +113,6 @@ func HandlerImmediatePred(c *gin.Context) {
 	} else {
 		msg = completeMsgIfNameExist(prediction, label, path)
 	}
-
-	// Make a response as a JSON object.
 	c.JSON(http.StatusOK, gin.H{"r": msg})
 }
 
@@ -143,11 +122,8 @@ func HandlerOpenCV(c *gin.Context) {
 
 	// connects the OpenCV server through grpc
 	connectionOpenCV, err := grpc.Dial(common.GRPCOpenCVInsecurePort, grpc.WithInsecure(), grpc.WithBlock())
-	defer func(connectionOpenCV *grpc.ClientConn) {
-		err := connectionOpenCV.Close()
-		common.CheckErr(err)
-	}(connectionOpenCV)
-	common.CheckErr(err)
+	defer closeGRPCConnection(connectionOpenCV)
+	common.PanicErr(err)
 	clientOpenCV := openCVGRPC.NewCollectorClient(connectionOpenCV)
 
 	// send the request
@@ -156,14 +132,11 @@ func HandlerOpenCV(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
 	defer cancel()
 	r, err := clientOpenCV.CollectImage(ctx, &openCVGRPC.Empty{})
-	common.CheckErr(err)
+	common.PanicErr(err)
 
 	// update database
-	name := r.Name
-	path := r.Path
-	dbInterface.InsertBared(name, path)
+	dbInterface.InsertBared(r.Name, r.Path)
 
-	// make response
 	c.Status(http.StatusOK)
 }
 
@@ -192,6 +165,7 @@ func HandlerShowPictures(c * gin.Context) {
 				imageBundles.Images = append(imageBundles.Images,
 					ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: text})
 			}else{
+				// If an image cannot be loaded, then skip it.
 				fmt.Println(err)
 			}
 		}
@@ -219,6 +193,7 @@ func HandlerLabelPicturesGET(c *gin.Context){
 			// Caches the name-path pair.
 			mapNamesPaths[name] = path
 		}else {
+			// If an image cannot be loaded, then skip it.
 			fmt.Println(err)
 		}
 	}
@@ -244,8 +219,7 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 				name := result.Name
 				path, exist := mapNamesPaths[name]
 				// Ignore if there is no such name; maybe the record has been updated by another user.
-				// Else, move the pictures to the correct folder.
-				// Be careful if the val is empty.
+				// Else, move the pictures to the correct folder. Be careful if the val is empty.
 				if exist == true {
 					val := result.Val
 					if val == common.ResultIsVehicle {
@@ -268,6 +242,7 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 							// Remove the name from the map.
 							delete(mapNamesPaths, name)
 						}else {
+							// Since we may have more than 1 user:
 							fmt.Println(err)
 						}
 					} else {
@@ -277,7 +252,8 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 			}
 		}
 	}else {
-		fmt.Println(err)
+		// Panic here to let the user know that there is a problem with the system.
+		panic(err)
 	}
 	c.Status(http.StatusOK)
 }

@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import collect_pb2 as collect__pb2
+from grpc_basic import collect_pb2 as collect__pb2
 
 
 class CollectorStub(object):

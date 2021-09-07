@@ -1,6 +1,8 @@
 package dbInterface
 
 import (
+	"database/sql"
+	"serverGo/src/common"
 	"strconv"
 )
 
@@ -33,6 +35,12 @@ type UnlabeledRecord struct {
 type UnpredictedUnlabeledRecord struct {
 	Name string
 	Path string
+}
+
+// Close the sql rows.
+func closeSqlRows(res *sql.Rows) {
+	err := res.Close()
+	common.CheckErr(err)
 }
 
 // Generate text in a special form. Used by "ShowPictures".

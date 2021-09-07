@@ -2,6 +2,8 @@ package ginHandler
 
 import (
 	"errors"
+	"google.golang.org/grpc"
+	"mime/multipart"
 	"serverGo/src/common"
 )
 
@@ -38,7 +40,6 @@ type JSONLabeledResults struct {
 // Returns a message string.
 func completeMsgIfNameExist(pred *bool, label *bool, path *string) string {
 	msg := "The picture is in the database.\n"
-
 	if pred != nil {
 		if *pred == true {
 			msg += "prediction true\n"
@@ -48,7 +49,6 @@ func completeMsgIfNameExist(pred *bool, label *bool, path *string) string {
 	} else {
 		msg += "prediction unavailable\n"
 	}
-
 	if label != nil {
 		if *label == true {
 			msg += "label true\n"
@@ -58,7 +58,6 @@ func completeMsgIfNameExist(pred *bool, label *bool, path *string) string {
 	} else {
 		msg += "label unavailable\n"
 	}
-
 	msg += *path
 	return msg
 }
@@ -85,4 +84,16 @@ func getPathPredicted(imgName string, pred bool) (string, error) {
 	default:
 		return "", errors.New("getPathPredicted: Unknown prediction")
 	}
+}
+
+// Closes the opened file.
+func closeOpenedFile(file multipart.File) {
+	err := file.Close()
+	common.CheckErr(err)
+}
+
+// Closes the gRPC connection.
+func closeGRPCConnection(conn *grpc.ClientConn) {
+	err := conn.Close()
+	common.CheckErr(err)
 }
