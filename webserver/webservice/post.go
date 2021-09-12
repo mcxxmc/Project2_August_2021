@@ -10,11 +10,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 	"webserver/common"
 	"webserver/db"
 	tf2 "webserver/tf"
 	tf2Fast "webserver/tf_fast"
-	"time"
 )
 
 // The cache for labelImages; hold reference to the name and the path;
@@ -206,7 +206,7 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 						fmt.Println("LabelPicturesPost: Unexpected val.")
 					}
 				} else {
-					log.Panicln("The image name does not exist in the cache.")
+					log.Println("The image name does not exist in the cache.")
 				}
 			}
 		}

@@ -17,7 +17,7 @@ func QueryName(db *gorm.DB, name string) (bool, *bool, *bool, *string) {
 	if res.Error == nil {
 		return true, user.Prediction, user.Label, &user.Path
 	} else {
-		log.Println(res.Error)
+		// log.Println(res.Error)
 		return false, nil, nil, nil
 	}
 }
