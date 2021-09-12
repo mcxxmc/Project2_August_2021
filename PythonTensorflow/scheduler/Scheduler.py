@@ -1,16 +1,12 @@
 import logging
 import time
-
 import grpc
-from grpc_basic import tf_pb2_grpc, tf_pb2
-
+from tf import tf_pb2_grpc, tf_pb2
 from model.predict import make_prediction
-import threading
-
 from static.const import GRPC_GOLANG_INSECURE_PORT
 
 
-class Scheduler(threading.Thread):
+class Scheduler:
     """
     This class checks if there are new pictures to predict every 30 seconds (by default).
     Essentially a concurrent thread.
@@ -23,7 +19,6 @@ class Scheduler(threading.Thread):
         :param timeInterval: int.
             The time between two jobs in seconds.
         """
-        threading.Thread.__init__(self)  # equals to super().__init__()
         self.model = model
         self.timeInterval = timeInterval
         self.t0 = None
@@ -55,7 +50,7 @@ class Scheduler(threading.Thread):
                         r.append(tf_pb2.Prediction(name=name, pred=b))
 
                     # send the predictions
-                    response: tf_pb2.TFStandard = self.stub.PostPredictions(tf_pb2.PredictionArray(Predictions=r))
+                    self.stub.PostPredictions(tf_pb2.PredictionArray(Predictions=r))
                 except Exception as e:
                     logging.error(e)
 

@@ -1,4 +1,4 @@
-let urlOpenCV = "http://localhost:8080/fromOpenCV/";
+let urlOpenCV = "http://localhost:8080/opencv";
 
 
 // make the ajax call

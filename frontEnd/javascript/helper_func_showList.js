@@ -1,4 +1,4 @@
-let urlShowList = "http://localhost:8080/showList/";
+let urlShowList = "http://localhost:8080/show-list";
 
 function appendRows(data) {
     let t = $(".content #div_records #table_myTable").DataTable();

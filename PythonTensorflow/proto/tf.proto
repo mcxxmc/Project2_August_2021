@@ -1,0 +1,31 @@
+syntax="proto3";
+
+service Communicator {
+  // ask for new images to predict
+  rpc RequestImages (TFStandard) returns (ImageArray) {}
+
+  // exchange the prediction results
+  rpc PostPredictions (PredictionArray) returns (TFStandard) {}
+}
+
+message TFStandard {}
+
+message Image {
+  string name=1;
+  string path=2;
+}
+
+message ImageArray {
+  repeated Image Images=1;
+}
+
+message Prediction {
+  string name=1;
+  bool pred=2;  // true: vehicle; false: non-vehicle
+}
+
+message PredictionArray {
+  repeated Prediction Predictions=1;
+}
+
+// python -m grpc_tools.protoc -I./ --python_out=. --grpc_python_out=. ./tf.proto

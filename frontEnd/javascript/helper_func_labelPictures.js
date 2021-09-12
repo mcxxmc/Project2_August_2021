@@ -1,4 +1,4 @@
-let urlLabelPictures = "http://localhost:8080/labelPictures/";
+let urlLabelPictures = "http://localhost:8080/label-pictures";
 let allPictureNames = [];
 
 // display the pictures on the web page with check boxes

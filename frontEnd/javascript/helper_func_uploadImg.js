@@ -1,5 +1,5 @@
-let urlPostImage = 'http://localhost:8080/imgSystem/';  // must specify http to enable CORS
-let urlPostImageFast = 'http://localhost:8080/fromTensorflow/';
+let urlPostImage = 'http://localhost:8080/upload-image';  // must specify http to enable CORS
+let urlPostImageFast = 'http://localhost:8080/fast-prediction';
 
 $(document).ready(function (e) {
     $('#form_img').on('submit',(function(e) {
