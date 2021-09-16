@@ -20,22 +20,22 @@ type ImageBundles struct {
 	Images []ImageBundle `json:"images"`
 }
 
-// JSONShowPictures The JSON structure with offset and the number of pictures requested.
-type JSONShowPictures struct {
+// QueryParameters The JSON structure with offset and the number of pictures requested.
+type QueryParameters struct {
 	Offset int `json:"offset"`
 	N int `json:"n"`
 }
 
-// JSONLabeledResult The JSON structure containing the name of the picture and the label created by the labeler.
+// LabeledResult The JSON structure containing the name of the picture and the label created by the labeler.
 // The label is a string and its meaning can be designed accordingly.
-type JSONLabeledResult struct {
+type LabeledResult struct {
 	Name string `json:"name"`
 	Val string `json:"val"`
 }
 
-// JSONLabeledResults A collection of JSONLabeledResult s.
-type JSONLabeledResults struct {
-	Results []JSONLabeledResult `json:"results"`
+// LabeledResults A collection of LabeledResult s.
+type LabeledResults struct {
+	Results []LabeledResult `json:"results"`
 }
 
 // Returns a message string.

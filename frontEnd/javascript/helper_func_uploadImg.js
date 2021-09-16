@@ -1,5 +1,5 @@
-let urlPostImage = 'http://localhost:8080/upload-image';  // must specify http to enable CORS
-let urlPostImageFast = 'http://localhost:8080/fast-prediction';
+let urlPostImage = 'http://localhost:8080/upload';  // must specify http to enable CORS
+let urlPostImageFast = 'http://localhost:8080/prediction';
 
 $(document).ready(function (e) {
     $('#form_img').on('submit',(function(e) {

@@ -1,4 +1,4 @@
-let urlShowPictures = "http://localhost:8080/show-pictures";
+let urlShowPictures = "http://localhost:8080/pictures";
 let lastPictureId = 0;  // the id of the last picture
 let defaultN = 5;
 

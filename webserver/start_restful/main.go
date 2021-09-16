@@ -13,16 +13,18 @@ func main() {
 
 	// Set up the router.
 	router := gin.Default()
+	router.Use(webservice.Filter())
+	router.Use(webservice.SetHeader())
 
-	router.POST("/upload-image", webservice.HandlerPostImage)
-	router.POST("/fast-prediction", webservice.HandlerImmediatePred)
-	router.POST("/show-pictures", webservice.HandlerShowPictures)
-	router.POST("/label-pictures", webservice.HandlerLabelPicturesPOST)
+	router.POST("/upload", webservice.PostImage)
+	router.POST("/prediction", webservice.ImmediatePred)
+	router.POST("/pictures", webservice.ShowPictures)
+	router.POST("/labels-pictures", webservice.PostImageLabels)
 
-	router.GET("/show-list", webservice.HandlerShowList)
-	router.GET("/label-pictures", webservice.HandlerLabelPicturesGET)
+	router.GET("/list", webservice.ShowList)
+	router.GET("/labels-pictures", webservice.GetUnlabeledPictures)
 	// TODO: safety / authorization
-	router.GET("/opencv", webservice.HandlerOpenCV)
+	router.GET("/opencv", webservice.UseCamera)
 
 	// Run at port 8080.
 	err := router.Run(common.GINPORT)

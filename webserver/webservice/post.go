@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -21,11 +20,8 @@ import (
 // will be useful when there are multiple labelers.
 var mapNamesPaths = make(map[string]string)
 
-// HandlerPostImage handles the uploaded image from the frontend.
-func HandlerPostImage(c *gin.Context) {
-	// IMPORTANT! allows CORS
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-
+// PostImage handles the uploaded image from the frontend.
+func PostImage(c *gin.Context) {
 	// Get the file from the form using the key.
 	file, _ := c.FormFile(common.FormFileName)
 
@@ -67,11 +63,9 @@ func HandlerPostImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"r": msg})
 }
 
-// HandlerImmediatePred immediately predicts an image.
-func HandlerImmediatePred(c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-
-	// same codes in HandlerPostImage
+// ImmediatePred immediately predicts an image.
+func ImmediatePred(c *gin.Context) {
+	// same codes in PostImage
 	file, _ := c.FormFile(common.FormFileNameImmediatePred)
 	if file == nil {
 		c.JSON(http.StatusOK, gin.H{"r": "Please submit an image that is not empty."})
@@ -123,10 +117,9 @@ func HandlerImmediatePred(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"r": msg})
 }
 
-// HandlerShowPictures handles the request to show pictures.
-func HandlerShowPictures(c * gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	var temp JSONShowPictures
+// ShowPictures handles the request to show pictures.
+func ShowPictures(c * gin.Context) {
+	var temp QueryParameters
 	var imageBundles ImageBundles
 	err := c.BindJSON(&temp)
 	if err == nil {
@@ -155,12 +148,9 @@ func HandlerShowPictures(c * gin.Context) {
 	c.JSON(http.StatusOK, imageBundles)
 }
 
-
-
-// HandlerLabelPicturesPOST handles the request to label the pictures; POST.
-func HandlerLabelPicturesPOST(c *gin.Context){
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	var temp JSONLabeledResults
+// PostImageLabels handles the request to label the pictures; POST.
+func PostImageLabels(c *gin.Context){
+	var temp LabeledResults
 	err := c.BindJSON(&temp)
 	if err == nil {
 		results := temp.Results
@@ -206,7 +196,7 @@ func HandlerLabelPicturesPOST(c *gin.Context){
 						fmt.Println("LabelPicturesPost: Unexpected val.")
 					}
 				} else {
-					log.Println("The image name does not exist in the cache.")
+					fmt.Println("The image name does not exist in the cache.")
 				}
 			}
 		}

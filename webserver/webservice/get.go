@@ -14,10 +14,8 @@ import (
 	opencv2 "webserver/opencv"
 )
 
-// HandlerOpenCV communicates with the OpenCV server.
-func HandlerOpenCV(c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-
+// UseCamera communicates with the OpenCV server.
+func UseCamera(c *gin.Context) {
 	// connects the OpenCV server through grpc
 	connectionOpenCV, err := grpc.Dial(common.GRPCOpenCVInsecurePort, grpc.WithInsecure(), grpc.WithBlock())
 	defer closeGRPCConnection(connectionOpenCV)
@@ -40,18 +38,16 @@ func HandlerOpenCV(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// HandlerShowList handles the request to show information of all the images in a list.
-func HandlerShowList(c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+// ShowList handles the request to show information of all the images in a list.
+func ShowList(c *gin.Context) {
 	dbc := db.OpenDb()
 	defer db.CloseDb(dbc)
 	records := db.FetchAll(dbc)
 	c.JSON(http.StatusOK, records)
 }
 
-// HandlerLabelPicturesGET handles the request to label the pictures; GET.
-func HandlerLabelPicturesGET(c *gin.Context){
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+// GetUnlabeledPictures handles the request to label the pictures; GET.
+func GetUnlabeledPictures(c *gin.Context){
 	var imageBundles ImageBundles
 	dbc := db.OpenDb()
 	defer db.CloseDb(dbc)
