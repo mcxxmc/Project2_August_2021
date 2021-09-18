@@ -3,7 +3,7 @@ import time
 import grpc
 from tf import tf_pb2_grpc, tf_pb2
 from model.predict import make_prediction
-from static.const import GRPC_GOLANG_INSECURE_PORT
+from static.const import GRPC_WEBSERVER_INSECURE_PORT
 
 
 class Scheduler:
@@ -23,7 +23,7 @@ class Scheduler:
         self.timeInterval = timeInterval
         self.t0 = None
 
-        self.channel = grpc.insecure_channel(GRPC_GOLANG_INSECURE_PORT)
+        self.channel = grpc.insecure_channel(GRPC_WEBSERVER_INSECURE_PORT)
         self.stub = tf_pb2_grpc.CommunicatorStub(self.channel)
 
     def run(self) -> None:

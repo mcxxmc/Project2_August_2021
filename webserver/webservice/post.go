@@ -3,7 +3,6 @@ package webservice
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"io/ioutil"
@@ -30,12 +29,9 @@ func PostImage(c *gin.Context) {
 		return
 	}
 
-	dbc := db.OpenDb()
-	defer db.CloseDb(dbc)
-
 	// Checks if the image exists in our database.
 	imgName := file.Filename
-	exist, prediction, label, path := db.QueryName(dbc, imgName)
+	exist, prediction, label, path := db.QueryName(db.Db, imgName)
 
 	var msg string
 
@@ -52,7 +48,7 @@ func PostImage(c *gin.Context) {
 		common.PanicErr(err)
 
 		// update the database
-		db.InsertBared(dbc, imgName, imgPath)
+		db.InsertBared(db.Db, imgName, imgPath)
 
 	} else {
 		// Else, checks the prediction and the label.
@@ -65,16 +61,14 @@ func PostImage(c *gin.Context) {
 
 // ImmediatePred immediately predicts an image.
 func ImmediatePred(c *gin.Context) {
-	// same codes in PostImage
+	// codes at the beginning are same as in PostImage
 	file, _ := c.FormFile(common.FormFileNameImmediatePred)
 	if file == nil {
 		c.JSON(http.StatusOK, gin.H{"r": "Please submit an image that is not empty."})
 		return
 	}
-	dbc := db.OpenDb()
-	defer db.CloseDb(dbc)
 	imgName := file.Filename
-	exist, prediction, label, path := db.QueryName(dbc, imgName)
+	exist, prediction, label, path := db.QueryName(db.Db, imgName)
 	var msg string
 	if exist == false {
 		openedFile, err := file.Open()
@@ -83,10 +77,10 @@ func ImmediatePred(c *gin.Context) {
 		imgPath := common.S3ToPredict + imgName
 		err = c.SaveUploadedFile(file, imgPath)
 		common.PanicErr(err)
-		db.InsertBared(dbc, imgName, imgPath)
+		db.InsertBared(db.Db, imgName, imgPath)
 
 		// gRPC client
-		connectionTf, err := grpc.Dial(common.GRPCTensorflowPort, grpc.WithInsecure(), grpc.WithBlock())
+		connectionTf, err := grpc.Dial(common.TensorflowPort, grpc.WithInsecure(), grpc.WithBlock())
 		defer closeGRPCConnection(connectionTf)
 		common.PanicErr(err)
 		clientTfFast := tf2Fast.NewImmediatePredictorClient(connectionTf)
@@ -104,12 +98,12 @@ func ImmediatePred(c *gin.Context) {
 		if err == nil {
 			err := os.Rename(imgPath, newPath)
 			if err == nil {
-				db.UpdatePathAndPrediction(dbc, imgName, newPath, predTf)
+				db.UpdatePathAndPrediction(db.Db, imgName, newPath, predTf)
 			} else {
-				fmt.Println(err)
+				common.Logger.Error(err)
 			}
 		} else {
-			fmt.Println(err)
+			common.Logger.Error(err)
 		}
 	} else {
 		msg = completeMsgIfNameExist(prediction, label, path)
@@ -123,9 +117,7 @@ func ShowPictures(c * gin.Context) {
 	var imageBundles ImageBundles
 	err := c.BindJSON(&temp)
 	if err == nil {
-		dbc := db.OpenDb()
-		defer db.CloseDb(dbc)
-		records := db.FetchN(dbc, temp.Offset, temp.N).Recs
+		records := db.FetchN(db.Db, temp.Offset, temp.N).Recs
 		var path string
 		var text string
 		var record db.Record
@@ -139,11 +131,11 @@ func ShowPictures(c * gin.Context) {
 					ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: text})
 			}else{
 				// If an image cannot be loaded, then skip it.
-				fmt.Println(err)
+				common.Logger.Error(err)
 			}
 		}
 	}else{
-		fmt.Println(err)
+		common.Logger.Error(err)
 	}
 	c.JSON(http.StatusOK, imageBundles)
 }
@@ -156,13 +148,11 @@ func PostImageLabels(c *gin.Context){
 		results := temp.Results
 		// First, check if the results contain information.
 		if results == nil || len(results) == 0 {
-			fmt.Println("LabelPicturesPost: Empty response from users.")
+			common.Logger.Infof("LabelPicturesPost: Empty response from users.")
 		}else{
 			var newLocation string
 			var isVehicle bool
 			var hasVal = false
-			dbc := db.OpenDb()
-			defer db.CloseDb(dbc)
 			for i := 0; i < len(results); i ++ {
 				result := results[i]
 				name := result.Name
@@ -185,18 +175,18 @@ func PostImageLabels(c *gin.Context){
 						err := os.Rename(path, newLocation)
 						if err == nil {
 							// Also, update the database.
-							db.UpdatePathAndLabel(dbc, name, newLocation, isVehicle)
+							db.UpdatePathAndLabel(db.Db, name, newLocation, isVehicle)
 							// Remove the name from the map.
 							delete(mapNamesPaths, name)
 						}else {
 							// Since we may have more than 1 user:
-							fmt.Println(err)
+							common.Logger.Error(err)
 						}
 					} else {
-						fmt.Println("LabelPicturesPost: Unexpected val.")
+						common.Logger.Infof("LabelPicturesPost: Unexpected val.")
 					}
 				} else {
-					fmt.Println("The image name does not exist in the cache.")
+					common.Logger.Infof("The image name does not exist in the cache.")
 				}
 			}
 		}

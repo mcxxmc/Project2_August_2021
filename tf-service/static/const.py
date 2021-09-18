@@ -28,4 +28,4 @@ WEIGHTS_PATH = '../weights/weight_2.h5'
 WEIGHTS_SAVE_PATH = "../weights/weight_3.h5"
 
 GRPC_INSECURE_PORT = "[::]:50052"
-GRPC_GOLANG_INSECURE_PORT = "localhost:50050"
+GRPC_WEBSERVER_INSECURE_PORT = "localhost:50050"

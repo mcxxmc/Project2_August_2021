@@ -1,6 +1,8 @@
 package db
 
 var dataSource = "localuser:localuserpassword@tcp(localhost:3306)/august2021"
+// add "?tx_isolation=XXX" if you need a different isolation level
+
 var tableName = "picture"
 
 var conditionNameEqual = "name = ?"
@@ -46,33 +48,3 @@ type Records struct {
 func (Records) TableName() string {
 	return tableName
 }
-
-/*
-// PathAndDesc The JSON structure containing the path of an image and a customized description of that image.
-type PathAndDesc struct {
-	Path string
-	Text string
-}
-
-func (PathAndDesc) TableName() string {
-	return tableName
-}
-
-// UnlabeledRecord The JSON structure containing the information (name and path) of an unlabeled image.
-type UnlabeledRecord struct {
-	Name string
-	Path string
-}
-
-type UnpredictedUnlabeledRecord struct {
-	Name string
-	Path string
-}
-
-// Close the sql rows.
-func closeSqlRows(res *sql.Rows) {
-	err := res.Close()
-	common.CheckErr(err)
-}
-
- */

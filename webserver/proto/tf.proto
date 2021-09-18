@@ -10,6 +10,7 @@ service Communicator {
   rpc PostPredictions (PredictionArray) returns (TFStandard) {}
 }
 
+// equal to Empty{}. Pb does not allow the same name (even in different proto files).
 message TFStandard {}
 
 message Image {

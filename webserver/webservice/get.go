@@ -3,7 +3,6 @@ package webservice
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"io/ioutil"
@@ -17,7 +16,7 @@ import (
 // UseCamera communicates with the OpenCV server.
 func UseCamera(c *gin.Context) {
 	// connects the OpenCV server through grpc
-	connectionOpenCV, err := grpc.Dial(common.GRPCOpenCVInsecurePort, grpc.WithInsecure(), grpc.WithBlock())
+	connectionOpenCV, err := grpc.Dial(common.OpenCVInsecurePort, grpc.WithInsecure(), grpc.WithBlock())
 	defer closeGRPCConnection(connectionOpenCV)
 	common.PanicErr(err)
 	clientOpenCV := opencv2.NewCollectorClient(connectionOpenCV)
@@ -31,27 +30,21 @@ func UseCamera(c *gin.Context) {
 	common.PanicErr(err)
 
 	// update database
-	dbc := db.OpenDb()
-	defer db.CloseDb(dbc)
-	db.InsertBared(dbc, r.Name, r.Path)
+	db.InsertBared(db.Db, r.Name, r.Path)
 
 	c.Status(http.StatusOK)
 }
 
 // ShowList handles the request to show information of all the images in a list.
 func ShowList(c *gin.Context) {
-	dbc := db.OpenDb()
-	defer db.CloseDb(dbc)
-	records := db.FetchAll(dbc)
+	records := db.FetchAll(db.Db)
 	c.JSON(http.StatusOK, records)
 }
 
 // GetUnlabeledPictures handles the request to label the pictures; GET.
 func GetUnlabeledPictures(c *gin.Context){
 	var imageBundles ImageBundles
-	dbc := db.OpenDb()
-	defer db.CloseDb(dbc)
-	unlabeledRecords := db.FetchUnlabeled(dbc).Recs
+	unlabeledRecords := db.FetchUnlabeled(db.Db).Recs
 	var name string
 	var path string
 	for i := 0; i < len(unlabeledRecords); i ++ {
@@ -66,7 +59,7 @@ func GetUnlabeledPictures(c *gin.Context){
 			mapNamesPaths[name] = path
 		}else {
 			// If an image cannot be loaded, then skip it.
-			fmt.Println(err)
+			common.Logger.Error(err)
 		}
 	}
 	c.JSON(http.StatusOK, imageBundles)

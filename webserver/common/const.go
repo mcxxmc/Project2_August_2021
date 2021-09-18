@@ -1,9 +1,5 @@
 package common
 
-import (
-	"log"
-)
-
 // FormFileName The name of the form data in the form
 var FormFileName = "img"
 
@@ -25,25 +21,20 @@ var S3VehiclePrefix = "D:/Project2_August_2021/s3/train/vehicles/"
 // S3NonVehiclePrefix The path prefix for non-vehicle images,labeled
 var S3NonVehiclePrefix = "D:/Project2_August_2021/s3/train/non-vehicles/"
 
+// ResultIsVehicle string to match if the result is vehicle
 var ResultIsVehicle = "v"
+
+// ResultIsNonVehicle string to match if the result is non-vehicle
 var ResultIsNonVehicle = "nv"
 
-var GRPCGoPort = ":50050"
-var GRPCOpenCVInsecurePort = "localhost:50051"
-var GRPCTensorflowPort = "localhost:50052"
+// WebserverPort the port number for webserver gRPC server
+var WebserverPort = ":50050"
 
-var GINPORT = ":8080"
+// OpenCVInsecurePort the port number for opencv gRPC server
+var OpenCVInsecurePort = "localhost:50051"
 
-// CheckErr checks the error and prints it out if not nil
-func CheckErr(err error) {
-	if err != nil {
-		log.Println(err)
-	}
-}
+// TensorflowPort the port number for tensorflow gRPC port
+var TensorflowPort = "localhost:50052"
 
-// PanicErr raises a panic if the error is not nil.
-func PanicErr(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
+// WebserverPortGin the port number for webserver GIN server
+var WebserverPortGin = ":8080"
