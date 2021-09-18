@@ -9,6 +9,7 @@ import (
 // Db the connection pool;
 // needs to be initialized by calling OpenSharedDb();
 // can be closed using CloseSharedDb()
+// Singleton
 var Db *gorm.DB
 
 // openDb opens a connection to the database.
