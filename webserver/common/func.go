@@ -1,9 +1,11 @@
 package common
 
+import "go.uber.org/zap"
+
 // CheckErr checks the error and prints it out if not nil
 func CheckErr(err error) {
 	if err != nil {
-		Logger.Error(err)
+		zap.S().Error(err)
 	}
 }
 

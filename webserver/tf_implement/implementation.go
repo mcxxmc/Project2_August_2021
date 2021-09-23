@@ -2,6 +2,7 @@ package tf_implement
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -18,7 +19,7 @@ type tfServer struct {
 var mapNamesPaths = make(map[string]string)  // the dictionary storing old name-path pairs
 
 func (s *tfServer) RequestImages(ctx context.Context, in *tf2.TFStandard) (*tf2.ImageArray, error) {
-	common.Logger.Infof("RequestImages: invoked.")
+	zap.S().Infof("RequestImages: invoked.")
 	records := db.FetchUnpredictedUnlabeled(db.Db).Recs
 	var r tf2.ImageArray
 	var tmp []*tf2.Image
@@ -36,7 +37,7 @@ func (s *tfServer) RequestImages(ctx context.Context, in *tf2.TFStandard) (*tf2.
 }
 
 func (s *tfServer) PostPredictions(ctx context.Context, in *tf2.PredictionArray) (*tf2.TFStandard, error) {
-	common.Logger.Infof("PostPredictions: invoked.")
+	zap.S().Infof("PostPredictions: invoked.")
 	predictions := in.Predictions
 	var name string
 	var b bool
@@ -54,7 +55,7 @@ func (s *tfServer) PostPredictions(ctx context.Context, in *tf2.PredictionArray)
 			} else if b == false {
 				path = common.S3NonVehiclePredictionPrefix + name
 			} else {
-				common.Logger.Errorf("PostPredictions: Unexpected value b.")
+				zap.S().Errorf("PostPredictions: Unexpected value b.")
 				break
 			}
 			// fmt.Println("Name: " + name + ", old path: " + oldPath + ", path: " + path + ", pred: " + strconv.FormatBool(b))
@@ -66,10 +67,10 @@ func (s *tfServer) PostPredictions(ctx context.Context, in *tf2.PredictionArray)
 				// remove the name from the map
 				delete(mapNamesPaths, name)
 			} else {
-				common.Logger.Error(err)
+				zap.S().Error(err)
 			}
 		} else {
-			common.Logger.Errorf("PostPredictions: " + name + " does not exist in map.")
+			zap.S().Errorf("PostPredictions: " + name + " does not exist in map.")
 		}
 	}
 	var r tf2.TFStandard
@@ -77,12 +78,12 @@ func (s *tfServer) PostPredictions(ctx context.Context, in *tf2.PredictionArray)
 }
 
 func StartServer() {
-	common.Logger.Infof("tf_implement: Server is started.")
+	zap.S().Infof("tf_implement: Server is started.")
 	lis, err := net.Listen("tcp", common.WebserverPort)
 	common.PanicErr(err)
 	s := grpc.NewServer()
 	tf2.RegisterCommunicatorServer(s, &tfServer{})
-	common.Logger.Infof("server listening at %v", lis.Addr())
+	zap.S().Infof("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

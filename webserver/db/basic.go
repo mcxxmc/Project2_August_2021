@@ -1,6 +1,7 @@
 package db
 
 import (
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"webserver/common"
@@ -32,22 +33,22 @@ func closeDb(db *gorm.DB) {
 // OpenSharedDb the function to initialize the shared connection pool
 func OpenSharedDb() {
 	Db = openDb()
-	common.Logger.Infof("Shared Db connection opens.")
+	zap.S().Infof("Shared Db connection opens.")
 }
 
 // CloseSharedDb the function to close the shared connection pool
 func CloseSharedDb() {
 	closeDb(Db)
-	common.Logger.Infof("Shared Db connection closes.")
+	zap.S().Infof("Shared Db connection closes.")
 }
 
 // Tests if the database functions properly by inserting, querying and deleting a temporary record.
 func testDb(db *gorm.DB) {
 	hasTable := db.Migrator().HasTable(&RecordNoId{})
 	if hasTable == true {
-		common.Logger.Infof("db/basic.go testDb: Table found.")
+		zap.S().Infof("db/basic.go testDb: Table found.")
 	} else {
-		common.Logger.Errorf("db/basic.go testDb: Error: No such table!")
+		zap.S().Errorf("db/basic.go testDb: Error: No such table!")
 	}
 }
 

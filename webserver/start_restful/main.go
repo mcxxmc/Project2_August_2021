@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,7 +17,7 @@ import (
 
 func addMiddleware(router *gin.Engine) {
 	router.Use(webservice.Filter())
-	router.Use(webservice.SetHeader())
+	router.Use(webservice.SetCORS())
 }
 
 func bindUrl(router *gin.Engine) {
@@ -39,30 +40,31 @@ func createServer(addr string, handler http.Handler) *http.Server {
 }
 
 func run(server *http.Server) {
-	common.Logger.Info("Server started, listening at: ", server.Addr)
+	zap.S().Info("Server started, listening at: ", server.Addr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		common.Logger.Fatalf("listen: %s\n", err)
+		zap.S().Fatalf("listen: %s\n", err)
 	}
-	//err := router.Run(common.WebserverPortGin)
-	//common.CheckErr(err)
 }
 
 func gracefulShutDown(server *http.Server, delay time.Duration) {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<- quit  // block here
-	common.Logger.Infof("Server is closing...")
+	zap.S().Infof("Server is closing...")
 	ctx, cancel := context.WithTimeout(context.Background(), delay)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
-		common.Logger.Fatal("Server shutdown: ", err)
+		zap.S().Fatal("Server shutdown: ", err)
 	}
-	common.Logger.Infof("Server exits.")
+	zap.S().Infof("Server exits.")
 }
 
 func main() {
 	// initiate the zap logger
-	common.InitLog()
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()  // flushes buffer, if any
+	undo := zap.ReplaceGlobals(logger)
+	defer undo()
 
 	// create the shared connection pool to the database
 	db.OpenSharedDb()
@@ -76,7 +78,7 @@ func main() {
 	// If it is going to be run in a linux container, use "go.uber.org/automaxprocs" to catch the max number of CPUs
 	// in the virtual machine.
 	numCPUs := runtime.NumCPU()
-	common.Logger.Infof("Golang running, number of logical CPUs usable: %d\n", numCPUs)
+	zap.S().Infof("Golang running, number of logical CPUs usable: %d\n", numCPUs)
 	// runtime.GOMAXPROCS(4)
 	router := gin.Default()
 	addMiddleware(router)

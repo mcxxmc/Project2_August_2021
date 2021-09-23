@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"net/http"
@@ -100,10 +101,10 @@ func ImmediatePred(c *gin.Context) {
 			if err == nil {
 				db.UpdatePathAndPrediction(db.Db, imgName, newPath, predTf)
 			} else {
-				common.Logger.Error(err)
+				zap.S().Error(err)
 			}
 		} else {
-			common.Logger.Error(err)
+			zap.S().Error(err)
 		}
 	} else {
 		msg = completeMsgIfNameExist(prediction, label, path)
@@ -131,11 +132,11 @@ func ShowPictures(c * gin.Context) {
 					ImageBundle{EncodedImage: base64.StdEncoding.EncodeToString(file), Text: text})
 			}else{
 				// If an image cannot be loaded, then skip it.
-				common.Logger.Error(err)
+				zap.S().Error(err)
 			}
 		}
 	}else{
-		common.Logger.Error(err)
+		zap.S().Error(err)
 	}
 	c.JSON(http.StatusOK, imageBundles)
 }
@@ -148,7 +149,7 @@ func PostImageLabels(c *gin.Context){
 		results := temp.Results
 		// First, check if the results contain information.
 		if results == nil || len(results) == 0 {
-			common.Logger.Infof("LabelPicturesPost: Empty response from users.")
+			zap.S().Infof("LabelPicturesPost: Empty response from users.")
 		}else{
 			var newLocation string
 			var isVehicle bool
@@ -180,13 +181,13 @@ func PostImageLabels(c *gin.Context){
 							delete(mapNamesPaths, name)
 						}else {
 							// Since we may have more than 1 user:
-							common.Logger.Error(err)
+							zap.S().Error(err)
 						}
 					} else {
-						common.Logger.Infof("LabelPicturesPost: Unexpected val.")
+						zap.S().Infof("LabelPicturesPost: Unexpected val.")
 					}
 				} else {
-					common.Logger.Infof("The image name does not exist in the cache.")
+					zap.S().Infof("The image " + name + " does not exist in the cache.")
 				}
 			}
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"net/http"
@@ -59,7 +60,7 @@ func GetUnlabeledPictures(c *gin.Context){
 			mapNamesPaths[name] = path
 		}else {
 			// If an image cannot be loaded, then skip it.
-			common.Logger.Error(err)
+			zap.S().Error(err)
 		}
 	}
 	c.JSON(http.StatusOK, imageBundles)
