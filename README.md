@@ -1,7 +1,7 @@
-# Project2_August_2021
+# Project August 2021
 This is the second formal project I have completed out of school, starting august 2021. 
 
-It is planned to be used as an add-on to my another CRUD project.
+It is planned to be used as an add-on to my previous CRUD project (which starts from June).
 
 It is intended to build a system for image classification, which can be used for things like flaw detection on car components, object recognition, etc. The codes posted here are for illustration purpose and the examples used are for vehicle detection. The dataset for experiment is from Kaggle and the image size is 64 x 64 x 3.
 
